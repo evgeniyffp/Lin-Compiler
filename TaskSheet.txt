@@ -1,0 +1,12 @@
+Not done:
+* Function overload
+* Function `printf`
+* if / else
+* Scopes
+* Functions in language
+
+Done:
+* Some system functions
+* Binary expression
+* Integer, string and bool literals
+* Vars
