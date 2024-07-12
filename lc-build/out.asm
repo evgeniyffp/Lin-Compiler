@@ -1,5 +1,4 @@
 section .data
-	msg140202742251872 db "12", 0
 
 section .text
 	extern strlen
@@ -30,11 +29,6 @@ main:
 	sete cl
 	movzx rax, cl
 	push rax
-
-	mov rax, msg140202742251872
-	push rax
-	pop rdi
-	call strlen
 
 	mov rax, 0
 	push rax

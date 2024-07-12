@@ -9,7 +9,7 @@
 auto main(int argc, char** argv) -> int {
     if (argc != 2) {
         std::cerr << "Incorrect usage. Correct usage is...\n";
-        std::cerr << "compilerfilename `file.lin`\n";
+        std::cerr << "linc `file.lin`\n";
         exit(EXIT_FAILURE);
     }
 
