@@ -14,7 +14,7 @@
 typedef unsigned long size_t;
 typedef char byte_t;
 
-extern void __printf(char*);
+extern void __printf(char*, ...);
 extern void __exit(int);
 extern void* __brk(void*);
 

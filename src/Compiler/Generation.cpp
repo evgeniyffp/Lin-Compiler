@@ -492,6 +492,7 @@ namespace Core::Compiler {
 
                 if (generator->_Functions[StatementFunction->FunctionName].Overloads.find(FunctionArgs) == generator->_Functions[StatementFunction->FunctionName].Overloads.end()) {
                     std::cerr << "Function whit this args don\'t be found!\n";
+                    exit(EXIT_FAILURE);
                 }
 
                 generator->GenetateExpression(StatementFunction->Arguments.at(0));
@@ -515,7 +516,7 @@ namespace Core::Compiler {
 
         this->_Functions["exit"].Overloads = {{{VarType::Integer}, Function{{}, "__exit"}}};
         this->_Functions["printf"].Overloads = {{{VarType::String}, Function{{}, "__printf"}}};
-        this->_Functions["strlen"].Overloads = {{{VarType::Integer}, Function{{}, "__strlen"}}};
+        this->_Functions["strlen"].Overloads = {{{VarType::String}, Function{{VarType::Integer}, "__strlen"}}};
 
         this->_DataSegment << "section .data\n";
 

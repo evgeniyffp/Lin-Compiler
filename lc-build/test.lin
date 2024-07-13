@@ -1,3 +1,6 @@
-let x = true == false;
-printf("Hello, World!\n");
+let str = "Hello, World!\n";
+printf(str);
+printf(str);
+printf(str);
+printf(str);
 exit(0);

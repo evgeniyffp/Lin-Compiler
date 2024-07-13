@@ -51,10 +51,13 @@ auto main(int argc, char** argv) -> int {
     if (system("nasm -felf64 ../stdlib/asm/asmcore.asm"))
         exit(EXIT_FAILURE);
 
+    if (system("clang -c -std=c99 ../stdlib/printf/printf.c -o ../stdlib/printf/printf.o"))
+        exit(EXIT_FAILURE);
+
     if (system("clang -c -std=c99 ../stdlib/allocator/allocate.c -o ../stdlib/allocator/allocate.o"))
         exit(EXIT_FAILURE);
 
-    if (system("ld ../lc-build/out.o ../stdlib/allocator/allocate.o ../stdlib/asm/asmcore.o -o ../lc-build/out"))
+    if (system("ld ../lc-build/out.o ../stdlib/allocator/allocate.o ../stdlib/asm/asmcore.o ../stdlib/printf/printf.o -o ../lc-build/out"))
         exit(EXIT_FAILURE);
 
     return 0;

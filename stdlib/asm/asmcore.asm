@@ -4,13 +4,16 @@ section .data
 section .text
     global __exit
     global __brk
-    global strlen
-    global __printf
-    global writeln
+    global __strlen
+    ;global __printf
+    ;global writeln
+    global puts
+    global putchar
 
 __exit:
     mov rax, 60
     syscall
+    ret
 
 
 __brk:
@@ -19,7 +22,7 @@ __brk:
     ret
 
 
-strlen:
+__strlen:
     xor rax, rax
 .loop:
     cmp byte [rdi+rax], 0
@@ -29,23 +32,41 @@ strlen:
 .end:
     ret
 
-
-__printf:
-    call strlen
+puts:
+    call __strlen
     mov rdx, rax
     mov rax, 1
     mov rsi, rdi
     mov rdi, 1
     syscall
-    mov rsi, rdi
+    mov rsi, rsi
     ret
 
-
-writeln:
+putchar:
     push rdi
-    call __printf
-    mov rdi, __newline
-    call __printf
+    mov rsi, rsp - 1
+    mov rdx, 1
+    mov rax, 1
+    mov rdi, 1
+    syscall
     pop rdi
     ret
 
+;__printf:
+;    call __strlen
+;    mov rdx, rax
+;    mov rax, 1
+;    mov rsi, rdi
+;    mov rdi, 1
+;    syscall
+;    mov rsi, rdi
+;    ret
+
+
+;writeln:
+;    push rdi
+;    call __printf
+;    mov rdi, __newline
+;    call __printf
+;    pop rdi
+;    ret

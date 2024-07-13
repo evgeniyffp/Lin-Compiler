@@ -1,5 +1,5 @@
 section .data
-	msg140668446953824 db "Hello, World!", 10, "", 0
+	msg140245163765848 db "Hello, World!%d", 10, 0
 
 section .text
 	extern __malloc
@@ -20,20 +20,12 @@ _start:
 	ret
 
 main:
-	mov rax, 0
-	push rax
-	mov rax, 1
-	push rax
-	pop rax
-	pop rbx
-	cmp rax, rbx
-	sete cl
-	movzx rax, cl
+	mov rax, msg140245163765848
 	push rax
 
-	mov rax, msg140668446953824
-	push rax
+	push qword [rsp + 0]
 	pop rdi
+	mov rsi, 100
 	call __printf
 
 	mov rax, 0
