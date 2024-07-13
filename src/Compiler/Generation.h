@@ -12,6 +12,51 @@
 #include "Parser.h"
 
 namespace Core::Compiler {
+    enum class VarType : int8_t {
+        Integer,
+        String,
+        Bool
+    };
+}
+
+
+namespace std {
+    template <>
+    struct hash<Core::Compiler::VarType> {
+        size_t operator()(const Core::Compiler::VarType& Type) const noexcept {
+            return static_cast<size_t>(Type);
+        }
+    };
+}
+
+namespace Core::Compiler {
+
+    // Now all types of var must be 8 bytes!!!
+    struct Var {
+        size_t StackLock;
+        VarType Type;
+    };
+
+    struct Function {
+        std::optional<VarType> ReturnValue;
+        std::string AsmName;
+    };
+
+    template <typename T>
+    struct VectorHasher {
+        size_t operator()(const std::vector<T>& V) const noexcept {
+            size_t hash = V.size();
+            for(auto &i : V) {
+                hash ^= static_cast<size_t>(i) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            }
+            return hash;
+        }
+    };
+
+    // Key is function signature => funcname(arg1, arg2...). For example `printf(String)` and others.
+    struct FunctionOverload {
+        std::unordered_map<std::vector<VarType>, Function, VectorHasher<VarType>> Overloads;
+    };
     class Generator {
     private:
         const Node::Programm _Programm;
@@ -32,26 +77,8 @@ namespace Core::Compiler {
             --this->_StackSize;
         }
 
-        enum class VarType {
-            Integer,
-            String,
-            Bool
-        };
-
-        // Now all types of var must be 8 bytes!!!
-        struct Var {
-            size_t StackLock;
-            VarType Type;
-        };
-
-        struct Function {
-            std::optional<VarType> ReturnValue;
-            std::vector<VarType> Args;
-            std::string AsmName;
-        };
-
         std::unordered_map<std::string, Var> _Vars;
-        std::unordered_map<std::string, Function> _Functions;
+        std::unordered_map<std::string, FunctionOverload> _Functions;
 
     public:
         explicit Generator(Node::Programm programm);

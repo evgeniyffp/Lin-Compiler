@@ -1,13 +1,14 @@
 section .data
+	msg140668446953824 db "Hello, World!", 10, "", 0
 
 section .text
-	extern strlen
+	extern __malloc
+	extern __free
+	extern __malloc_init
+	extern __malloc_deinit
+	extern __strlen
 	extern __printf
 	extern __exit
-	extern __malloc_init
-	extern __free
-	extern __malloc_deinit
-	extern __malloc
 
 global _start
 global main
@@ -29,6 +30,11 @@ main:
 	sete cl
 	movzx rax, cl
 	push rax
+
+	mov rax, msg140668446953824
+	push rax
+	pop rdi
+	call __printf
 
 	mov rax, 0
 	push rax

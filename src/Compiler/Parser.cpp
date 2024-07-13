@@ -31,7 +31,7 @@ namespace Core::Compiler {
     }
 
     Parser::Parser(std::vector<Token> tokens)
-    : _Tokens(std::move(tokens)), _CurrentIndex(0), _Allocator(1024 * 1024 * 8)
+    : _Tokens(std::move(tokens)), _CurrentIndex(0), _Allocator(1024 * 1024 * 16)
     {}
 
     auto Parser::ParseBinaryExpression() -> std::optional<Node::BinaryExpression*> {

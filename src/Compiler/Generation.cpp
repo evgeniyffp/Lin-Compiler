@@ -4,11 +4,11 @@
 
 #include <iostream>
 #include <cassert>
-
+#include <cmath>
 #include "Generation.h"
 
 namespace Core::Compiler {
-    Generator::Generator(Node::Programm programm) : _Programm(programm), _Output(), _DataSegment(), _StackSize(0) {
+    Generator::Generator(Node::Programm programm) : _Programm(programm), _StackSize(0) {
     }
 
     auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VarType> {
@@ -198,13 +198,13 @@ namespace Core::Compiler {
                 std::string buffer;
                 std::string InputValue = TermStringLiteral->StringLiteral.value.value();
 
-                for (size_t i = 0; i < InputValue.size(); ++i) {
-                    if (isEscape(InputValue[i])) {
-                        AsmStringValue += "\"" + buffer + "\", " + std::to_string(static_cast<int32_t>(InputValue[i])) + ", ";
+                for (char i : InputValue) {
+                    if (isEscape(i)) {
+                        AsmStringValue += "\"" + buffer + "\", " + std::to_string(static_cast<int32_t>(i)) + ", ";
                         buffer.clear();
                     }
                     else {
-                        buffer.push_back(InputValue[i]);
+                        buffer.push_back(i);
                     }
                 }
                 AsmStringValue += "\"" + buffer + "\", ";
@@ -385,7 +385,6 @@ namespace Core::Compiler {
                     default: {
                         std::cerr << "Don\'t be fount this operator with this var type!\n";
                         exit(EXIT_FAILURE);
-                        break;
                     }
 
                 }
@@ -478,25 +477,28 @@ namespace Core::Compiler {
                     exit(EXIT_FAILURE);
                 }
 
-                auto& FunctionArgs = generator->_Functions[StatementFunction->FunctionName].Args;
-
-                if (FunctionArgs.size() != StatementFunction->Arguments.size()) {
-                    std::cerr << "Function whit this args don\'t be found!\n";
-                    exit(EXIT_FAILURE);
-                }
+                std::vector <VarType> FunctionArgs;
+                FunctionArgs.reserve(StatementFunction->Arguments.size());
 
                 for (size_t i = 0; i < StatementFunction->Arguments.size(); ++i) {
-                    if (generator->DefineExpressionType(StatementFunction->Arguments[i]) != FunctionArgs[i]) {
-                        std::cerr << "Function whit this args don\'t be found!\n";
+                    if (auto ArgType = generator->DefineExpressionType(StatementFunction->Arguments[i])) {
+                        FunctionArgs.push_back(ArgType.value());
+                    }
+                    else {
+                        std::cerr << "Error in defining var\'s type! \n";
                         exit(EXIT_FAILURE);
                     }
+                }
+
+                if (generator->_Functions[StatementFunction->FunctionName].Overloads.find(FunctionArgs) == generator->_Functions[StatementFunction->FunctionName].Overloads.end()) {
+                    std::cerr << "Function whit this args don\'t be found!\n";
                 }
 
                 generator->GenetateExpression(StatementFunction->Arguments.at(0));
 
                 generator->_StackPop("rdi");
 
-                generator->_Output << "\tcall " << generator->_Functions[StatementFunction->FunctionName].AsmName << "\n";
+                generator->_Output << "\tcall " << generator->_Functions[StatementFunction->FunctionName].Overloads[FunctionArgs].AsmName << "\n";
             }
         };
 
@@ -505,18 +507,17 @@ namespace Core::Compiler {
     }
 
     auto Generator::GenetateProgramm() -> std::string {
-        this->_Functions["__malloc"] = Function{{}, {}, "__malloc"};
-        this->_Functions["__free"] = Function{{}, {}, "__free"};
-        this->_Functions["__malloc_init"] = Function{{}, {}, "__malloc_init"};
-        this->_Functions["__malloc_deinit"] = Function{{}, {}, "__malloc_deinit"};
+        this->_TextSegment << "section .text\n";
+        this->_TextSegment << "\textern __malloc\n";
+        this->_TextSegment << "\textern __free\n";
+        this->_TextSegment << "\textern __malloc_init\n";
+        this->_TextSegment << "\textern __malloc_deinit\n";
 
-        this->_Functions["exit"] = Function{{}, { VarType::Integer }, "__exit"};
-        this->_Functions["printf"] = Function{{}, { VarType::String}, "__printf"};
-        this->_Functions["strlen"] = Function{{}, { VarType::String}, "strlen"};
+        this->_Functions["exit"].Overloads = {{{VarType::Integer}, Function{{}, "__exit"}}};
+        this->_Functions["printf"].Overloads = {{{VarType::String}, Function{{}, "__printf"}}};
+        this->_Functions["strlen"].Overloads = {{{VarType::Integer}, Function{{}, "__strlen"}}};
 
         this->_DataSegment << "section .data\n";
-
-        this->_TextSegment << "section .text\n";
 
         this->_Output << "global _start\n";
         this->_Output << "global main\n\n";
@@ -532,8 +533,10 @@ namespace Core::Compiler {
             this->_Output << "\n";
         }
 
-        for (const auto& fn : this->_Functions) {
-            this->_TextSegment << "\textern " << fn.second.AsmName << "\n";
+        for (const auto& FuncOverload : this->_Functions) {
+            for (const auto& Func : FuncOverload.second.Overloads) {
+                this->_TextSegment << "\textern " << Func.second.AsmName << "\n";
+            }
         }
 
         this->_DataSegment << "\n";

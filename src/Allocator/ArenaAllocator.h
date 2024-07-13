@@ -6,6 +6,7 @@
 #define ARENAALLOCATOR_H
 
 #include <cstdint>
+#include <stdlib.h>
 
 namespace Core::Compiler {
     using byte = uint8_t;
