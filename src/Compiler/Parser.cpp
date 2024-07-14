@@ -269,13 +269,25 @@ namespace Core::Compiler {
 
             this->_TryConsume(TokenType::LeftParent, "Expected `(`!");
 
-            if (auto Expression = this->ParseExpression()) {
-                StatementFunction->Arguments.push_back(Expression.value());
-            }
-            else {
-                std::cerr << "Invalid expression!\n";
-                exit(EXIT_FAILURE);
-            }
+            do {
+                if (auto Expression = this->ParseExpression()) {
+                    StatementFunction->Arguments.push_back(Expression.value());
+                }
+                else {
+                    std::cerr << "Invalid expression!\n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!this->_Peek().has_value()) {
+                    break;
+                }
+
+                if (this->_Peek().value().type != TokenType::Comma) {
+                    break;
+                }
+
+                this->_Consume();
+            } while(true);
 
             this->_TryConsume(TokenType::RightParent, "Expected `)`!");
 

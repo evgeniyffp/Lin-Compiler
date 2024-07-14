@@ -1,6 +1,9 @@
-let str = "Hello, World!\n";
-printf(str);
-printf(str);
-printf(str);
-printf(str);
+printf("Hello, World!\n");
+
+let x = 1;
+let y = 2;
+let z = 3;
+
+printf("x = %d\ny = %d\nz = %d\n", x, y, z);
+
 exit(0);

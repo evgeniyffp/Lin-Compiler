@@ -100,6 +100,10 @@ namespace Core::Compiler {
                         tokens.push_back({TokenType::RightParent});
                         break;
                     }
+                    case ',': {
+                        tokens.push_back({TokenType::Comma});
+                        break;
+                    }
                     case ';': {
                         tokens.push_back({TokenType::CommandEnd});
                         break;

@@ -27,8 +27,7 @@ namespace Core::Compiler {
         StringLiteral,
         BoolLiteral,
 
-        True,
-
+        Comma,
         CommandEnd,
 
         Word,

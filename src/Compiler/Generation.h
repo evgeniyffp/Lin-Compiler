@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <assert.h>
 
 #include "Parser.h"
 
@@ -17,19 +18,6 @@ namespace Core::Compiler {
         String,
         Bool
     };
-}
-
-
-namespace std {
-    template <>
-    struct hash<Core::Compiler::VarType> {
-        size_t operator()(const Core::Compiler::VarType& Type) const noexcept {
-            return static_cast<size_t>(Type);
-        }
-    };
-}
-
-namespace Core::Compiler {
 
     // Now all types of var must be 8 bytes!!!
     struct Var {
@@ -53,10 +41,71 @@ namespace Core::Compiler {
         }
     };
 
+    enum class FunctionArgsParametr : uint8_t {
+        UnlimitedArguments
+    };
+
+    struct FunctionArgs {
+        std::vector<VarType> Args;
+        std::optional<FunctionArgsParametr> Parametr;
+
+        bool operator==(const Core::Compiler::FunctionArgs& other) const {
+            if (!this->Parametr.has_value() && !other.Parametr.has_value()) {
+                if (this->Args.size() != other.Args.size()) return false;
+                for (size_t i = 0; i < this->Args.size(); ++i) {
+                    if (this->Args[i] != other.Args[i])
+                        return false;
+                }
+                return true;
+            }
+            else {
+                for (size_t i = 0; i < this->Args.size(); ++i) {
+                    if (i >= other.Args.size() - 1) {
+                        return true;
+                    }
+
+                    if (this->Parametr.value() == FunctionArgsParametr::UnlimitedArguments) {
+                        return true;
+                    }
+                    else if (other.Parametr.value() == FunctionArgsParametr::UnlimitedArguments) {
+                        return true;
+                    }
+                    if (this->Args[i] != other.Args[i])
+                        return false;
+                }
+
+                assert(false);
+            }
+        }
+    };
+}
+
+namespace std {
+    template <>
+    struct hash<Core::Compiler::VarType> {
+        size_t operator()(const Core::Compiler::VarType& Type) const noexcept {
+            return static_cast<size_t>(Type);
+        }
+    };
+
+    template <>
+    struct hash<Core::Compiler::FunctionArgs> {
+        size_t operator()(const Core::Compiler::FunctionArgs& FunctionArgs) const noexcept {
+            size_t hash = FunctionArgs.Args.size();
+            for(auto &i : FunctionArgs.Args) {
+                hash ^= static_cast<size_t>(i) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            }
+            return hash;
+        }
+    };
+}
+
+namespace Core::Compiler {
     // Key is function signature => funcname(arg1, arg2...). For example `printf(String)` and others.
     struct FunctionOverload {
-        std::unordered_map<std::vector<VarType>, Function, VectorHasher<VarType>> Overloads;
+        std::unordered_map<FunctionArgs, Function, std::hash<FunctionArgs>> Overloads;
     };
+
     class Generator {
     private:
         const Node::Programm _Programm;
@@ -79,6 +128,7 @@ namespace Core::Compiler {
 
         std::unordered_map<std::string, Var> _Vars;
         std::unordered_map<std::string, FunctionOverload> _Functions;
+        std::unordered_map<size_t, std::string> _PositionFnArgsInFnCall;
 
     public:
         explicit Generator(Node::Programm programm);

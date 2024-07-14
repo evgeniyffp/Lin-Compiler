@@ -477,12 +477,13 @@ namespace Core::Compiler {
                     exit(EXIT_FAILURE);
                 }
 
-                std::vector <VarType> FunctionArgs;
-                FunctionArgs.reserve(StatementFunction->Arguments.size());
+                FunctionArgs FunctionArgs;
+                FunctionArgs.Parametr = {};
+                FunctionArgs.Args.reserve(StatementFunction->Arguments.size());
 
                 for (size_t i = 0; i < StatementFunction->Arguments.size(); ++i) {
                     if (auto ArgType = generator->DefineExpressionType(StatementFunction->Arguments[i])) {
-                        FunctionArgs.push_back(ArgType.value());
+                        FunctionArgs.Args.push_back(ArgType.value());
                     }
                     else {
                         std::cerr << "Error in defining var\'s type! \n";
@@ -490,16 +491,33 @@ namespace Core::Compiler {
                     }
                 }
 
-                if (generator->_Functions[StatementFunction->FunctionName].Overloads.find(FunctionArgs) == generator->_Functions[StatementFunction->FunctionName].Overloads.end()) {
-                    std::cerr << "Function whit this args don\'t be found!\n";
+                Function FnOverload;
+                bool isFailed = true;
+
+                for (const auto& FnOverloadIterator : generator->_Functions[StatementFunction->FunctionName].Overloads) {
+                    if (FnOverloadIterator.first == FunctionArgs) {
+                        FnOverload = FnOverloadIterator.second;
+                        isFailed = false;
+                        break;
+                    }
+                }
+
+                if (isFailed) {
+                    std::cerr << "Function with this args don\'t be found!\n";
                     exit(EXIT_FAILURE);
                 }
 
-                generator->GenetateExpression(StatementFunction->Arguments.at(0));
+                // if (generator->_Functions[StatementFunction->FunctionName].Overloads.find(FunctionArgs) == generator->_Functions[StatementFunction->FunctionName].Overloads.end()) {
+                //     std::cerr << "Function with this args don\'t be found!\n";
+                //     exit(EXIT_FAILURE);
+                // }
 
-                generator->_StackPop("rdi");
+                for (size_t i = 0; i < generator->_PositionFnArgsInFnCall.size() && i < StatementFunction->Arguments.size(); ++i) {
+                    generator->GenetateExpression(StatementFunction->Arguments.at(i));
+                    generator->_StackPop(generator->_PositionFnArgsInFnCall[i]);
+                }
 
-                generator->_Output << "\tcall " << generator->_Functions[StatementFunction->FunctionName].Overloads[FunctionArgs].AsmName << "\n";
+                generator->_Output << "\tcall " << FnOverload.AsmName << "\n";
             }
         };
 
@@ -508,15 +526,22 @@ namespace Core::Compiler {
     }
 
     auto Generator::GenetateProgramm() -> std::string {
+        this->_PositionFnArgsInFnCall[0] = "rdi";
+        this->_PositionFnArgsInFnCall[1] = "rsi";
+        this->_PositionFnArgsInFnCall[2] = "rdx";
+        this->_PositionFnArgsInFnCall[3] = "rcx";
+        this->_PositionFnArgsInFnCall[4] = "r8";
+        this->_PositionFnArgsInFnCall[5] = "r9";
+
         this->_TextSegment << "section .text\n";
         this->_TextSegment << "\textern __malloc\n";
         this->_TextSegment << "\textern __free\n";
         this->_TextSegment << "\textern __malloc_init\n";
         this->_TextSegment << "\textern __malloc_deinit\n";
 
-        this->_Functions["exit"].Overloads = {{{VarType::Integer}, Function{{}, "__exit"}}};
-        this->_Functions["printf"].Overloads = {{{VarType::String}, Function{{}, "__printf"}}};
-        this->_Functions["strlen"].Overloads = {{{VarType::String}, Function{{VarType::Integer}, "__strlen"}}};
+        this->_Functions["exit"].Overloads = {{{{VarType::Integer}, {}}, Function{{}, "__exit"}}};
+        this->_Functions["printf"].Overloads = {{{{VarType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}};
+        this->_Functions["strlen"].Overloads = {{{{VarType::String}, {}}, Function{{VarType::Integer}, "__strlen"}}};
 
         this->_DataSegment << "section .data\n";
 
