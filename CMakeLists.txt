@@ -19,6 +19,9 @@ add_executable(Compiler
         src/Compiler/Generation.h
         src/Allocator/ArenaAllocator.cpp
         src/Allocator/ArenaAllocator.h
+        src/Compiler/Variable.h
+        src/Compiler/VectorHasher.h
+        src/Compiler/Functions.h
 )
 target_link_libraries(Compiler stdc++)
 

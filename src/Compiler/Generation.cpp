@@ -11,10 +11,10 @@ namespace Core::Compiler {
     Generator::Generator(Node::Programm programm) : _Programm(programm), _StackSize(0) {
     }
 
-    auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VarType> {
+    auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VariableType> {
         struct ExpressionVisitors {
             Generator* generator;
-            std::optional<VarType>& Type;
+            std::optional<VariableType>& Type;
             void operator()(const Node::Term* Term) const {
                 Type = generator->DefineTermType(Term);
             }
@@ -24,7 +24,7 @@ namespace Core::Compiler {
             }
         };
 
-        std::optional<VarType> Type;
+        std::optional<VariableType> Type;
 
         ExpressionVisitors visitors{this, Type};
 
@@ -33,10 +33,10 @@ namespace Core::Compiler {
         return Type;
     }
 
-    auto Generator::DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VarType> {
+    auto Generator::DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType> {
         struct BinaryExpressionVisitors {
             Generator* generator;
-            std::optional<VarType>& Type;
+            std::optional<VariableType>& Type;
             void operator()(const Node::BinaryExpressionAdd* BinaryExpressionAdd) const {
                 auto TypeLhs = generator->DefineExpressionType(BinaryExpressionAdd->LeftHandSide);
                 auto TypeRhs = generator->DefineExpressionType(BinaryExpressionAdd->RightHandSide);
@@ -126,16 +126,16 @@ namespace Core::Compiler {
             }
 
             void operator()(const Node::BinaryExpressionEqualTo* BinaryExpressionEqualTo) const {
-                Type = VarType::Bool;
+                Type = VariableType::Bool;
             }
 
             void operator()(const Node::BinaryExpressionNotEqualTo* BinaryExpressionNotEqualTo) const {
-                Type = VarType::Bool;
+                Type = VariableType::Bool;
             }
 
         };
 
-        std::optional<VarType> Type;
+        std::optional<VariableType> Type;
 
         BinaryExpressionVisitors visitors{this, Type};
 
@@ -144,20 +144,20 @@ namespace Core::Compiler {
         return Type;
     }
 
-    auto Generator::DefineTermType(const Node::Term* Term) -> std::optional<VarType> {
+    auto Generator::DefineTermType(const Node::Term* Term) -> std::optional<VariableType> {
         struct TermVisitors {
             Generator* generator;
-            std::optional<VarType>& Type;
+            std::optional<VariableType>& Type;
             void operator()(const Node::TermIntegerLiteral* TermIntegerLiteral) const {
-                Type = VarType::Integer;
+                Type = VariableType::Integer;
             }
 
             void operator()(const Node::TermStringLiteral* TermStringLiteral) const {
-                Type = VarType::String;
+                Type = VariableType::String;
             }
 
             void operator()(const Node::TermBoolLiteral* TermBoolLiteral) const {
-                Type = VarType::Bool;
+                Type = VariableType::Bool;
             }
 
             void operator()(const Node::TermIdentifier* TermIdentifier) const {
@@ -169,7 +169,7 @@ namespace Core::Compiler {
             }
         };
 
-        std::optional<VarType> Type;
+        std::optional<VariableType> Type;
 
         TermVisitors visitors{this, Type};
 
@@ -366,8 +366,8 @@ namespace Core::Compiler {
                 }
 
                 switch (LhsType.value()) {
-                    case VarType::Bool:
-                    case VarType::Integer: {
+                    case VariableType::Bool:
+                    case VariableType::Integer: {
                         generator->GenetateExpression(BinaryExpressionEqualTo->RightHandSide);
                         generator->GenetateExpression(BinaryExpressionEqualTo->LeftHandSide);
 
@@ -418,15 +418,15 @@ namespace Core::Compiler {
         }
 
         switch (ExpressionType.value()) {
-            case VarType::Integer: {
+            case VariableType::Integer: {
                 this->GenerateIntegerBinaryExpression(BinaryExpression);
                 break;
             }
-            case VarType::String: {
+            case VariableType::String: {
                 this->GenerateStringBinaryExpression(BinaryExpression);
                 break;
             }
-            case VarType::Bool: {
+            case VariableType::Bool: {
                 this->GenerateBoolBinaryExpression(BinaryExpression);
                 break;
             }
@@ -467,7 +467,7 @@ namespace Core::Compiler {
                     std::cerr << "Error in defining var\'s type! \n";
                     exit(EXIT_FAILURE);
                 }
-                generator->_Vars.insert({StatementLet->Identifier.value.value(), Var{generator->_StackSize, Type.value()}});
+                generator->_Vars.insert({StatementLet->Identifier.value.value(), Variable{generator->_StackSize, Type.value()}});
                 generator->GenetateExpression(StatementLet->Expression);
             }
 
@@ -539,9 +539,9 @@ namespace Core::Compiler {
         this->_TextSegment << "\textern __malloc_init\n";
         this->_TextSegment << "\textern __malloc_deinit\n";
 
-        this->_Functions["exit"].Overloads = {{{{VarType::Integer}, {}}, Function{{}, "__exit"}}};
-        this->_Functions["printf"].Overloads = {{{{VarType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}};
-        this->_Functions["strlen"].Overloads = {{{{VarType::String}, {}}, Function{{VarType::Integer}, "__strlen"}}};
+        this->_Functions["exit"].Overloads = {{{{VariableType::Integer}, {}}, Function{{}, "__exit"}}};
+        this->_Functions["printf"].Overloads = {{{{VariableType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}};
+        this->_Functions["strlen"].Overloads = {{{{VariableType::String}, {}}, Function{{VariableType::Integer}, "__strlen"}}};
 
         this->_DataSegment << "section .data\n";
 
