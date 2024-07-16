@@ -1,6 +1,5 @@
 section .data
-	msg139703324274776 db "Hello, World!", 10, "", 0
-	msg139703324275320 db "x = %d", 10, "y = %d", 10, "z = %d", 10, "", 0
+	msg140473603707240 db "%d", 10, 0
 
 section .text
 	extern __malloc
@@ -23,31 +22,21 @@ _start:
 	ret
 
 main:
-	mov rdi, msg139703324274776
-	call __printf
+	push rbp
+	mov rbp, rsp
 
 	mov rax, 1
-	push rax
+	mov qword [rbp - 0], qword rax
 
 	mov rax, 2
-	push rax
+	mov qword [rbp - 0], qword rax
 
-	mov rax, 3
-	push rax
-
-	mov rdi, msg139703324275320
-	mov rax, [rsp + 16]
+	mov rdi, msg140473603707240
+	mov rax, [rsp - 0]
 	mov rsi, rax
-	mov rax, [rsp + 8]
-	mov rdx, rax
-	mov rax, [rsp + 0]
-	mov rcx, rax
 	call __printf
 
-	pop rax
-	pop rax
-	pop rax
-
+	pop rbp
 	ret
 
 

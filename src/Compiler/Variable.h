@@ -49,20 +49,35 @@ namespace Core::Compiler {
 
         void Push(const Variable& Var, const std::string& what) {
             this->Scopes[this->CurrentLevelScope].push_back(Var);
-            out << "\tpush " << what << "\n";
+            //out << "\tpush " << what << "\n";
+            out << "\tmov qword [rbp - " << this->CalculateLock(Var.Name) << "], " << what << "\n";
         }
 
         void Pop(const std::string& where = "") {
             this->Scopes[this->CurrentLevelScope].pop_back();
-            out << "\tpop " << where << "\n";
+            //out << "\tpop " << where << "\n";
+        }
+
+        size_t CalculateLock(const std::string& VariableName) {
+            size_t lock = 0;
+            for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
+                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
+                    if (this->Scopes[i][j].Name == VariableName) {
+                        return lock;
+                    }
+                    lock += SizeVariable(this->Scopes[i][j]);
+                }
+            }
+            std::cerr << "Undeclared identifier: " << VariableName << "\n";
+            exit(EXIT_FAILURE);
         }
 
         void VariableMove(const std::string& VariableName, const std::string& where) {
             size_t lock = 0;
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = this->Scopes[i].size() - 1; static_cast<int>(j + 1) > 0; --j) {
+                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
                     if (this->Scopes[i][j].Name == VariableName) {
-                        out << "\tmov rax, [rsp + " << lock << "]\n";
+                        out << "\tmov rax, [rsp - " << lock << "]\n";
                         out << "\tmov " << where << ", rax\n";
                         return;
                     }
@@ -76,7 +91,7 @@ namespace Core::Compiler {
         Variable Find(const std::string& VariableName) {
             size_t lock = 0;
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = this->Scopes[i].size() - 1; static_cast<int>(j + 1) > 0; --j) {
+                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
                     if (this->Scopes[i][j].Name == VariableName) {
                         return this->Scopes[i][j];
                     }
@@ -89,9 +104,7 @@ namespace Core::Compiler {
 
         void ClearScope() {
             while (!this->Scopes[this->CurrentLevelScope].empty()) {
-                out << "\tpop rax\n";
-
-                this->Scopes[this->CurrentLevelScope].pop_back();
+                this->Pop();
             }
 
             this->DecCurrentLevelScope();

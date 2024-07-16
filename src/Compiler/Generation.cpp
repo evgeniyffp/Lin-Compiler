@@ -207,7 +207,8 @@ namespace Core::Compiler {
                         buffer.push_back(i);
                     }
                 }
-                AsmStringValue += "\"" + buffer + "\", ";
+                if (!buffer.empty())
+                    AsmStringValue += "\"" + buffer + "\", ";
 
                 generator->_DataSegment << "\t" << label << " db " << AsmStringValue << 0 << "\n";
 
@@ -517,7 +518,7 @@ namespace Core::Compiler {
 
                 generator->GenetateExpression(StatementLet->Expression, "rax");
                 //generator->_Output << "\tpop rax\n";
-                generator->_VStack.Push({0, Type.value(), StatementLet->Identifier.value.value()}, "rax");
+                generator->_VStack.Push({0, Type.value(), StatementLet->Identifier.value.value()}, "qword rax");
             }
 
             void operator()(const Node::StatementFunctionCall* StatementFunction) const {
@@ -616,13 +617,11 @@ namespace Core::Compiler {
         this->_Output << "\tret\n\n";
         this->_Output << "main:\n";
 
-        /*for (const auto& Statement : this->_Programm.Statements) {
-            this->GenetateStatement(&Statement);
-            this->_Output << "\n";
-        }*/
-
+        this->_Output << "\tpush rbp\n";
+        this->_Output << "\tmov rbp, rsp\n\n";
         this->GenetateScope(this->_Programm.Statements);
-        this->_Output << "\n\tret\n\n";
+        this->_Output << "\tpop rbp\n";
+        this->_Output << "\tret\n\n";
 
         for (const auto& FuncOverload : this->_Functions) {
             for (const auto& Func : FuncOverload.second.Overloads) {
