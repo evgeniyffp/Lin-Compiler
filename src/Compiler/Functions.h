@@ -1,6 +1,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <assert.h>
+
 #include "VectorHasher.h"
 
 namespace Core::Compiler {
@@ -57,5 +59,12 @@ namespace std {
     };
 }
 
+namespace Core::Compiler {
+    // Key is function signature => funcname(arg1, arg2...). For example `printf(String)` and others.
+    struct FunctionOverload {
+        std::unordered_map<FunctionArgs, Function, std::hash<FunctionArgs>> Overloads;
+    };
+
+}
 
 #endif

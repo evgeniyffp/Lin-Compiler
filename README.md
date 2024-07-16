@@ -3,10 +3,11 @@
 Not done:
 1) REFACTORING!!!
 2) if / else
-3) Scopes
-4) Update variables(need Scopes)
-5) Functions in language(need Scopes)
-6) String binary expression(`+`, `*`)
+3) Functions in language
+4) String binary expression(`+`, `*`)
+
+50/50:
+1) Scopes
 
 Done:
 1) Some system functions(`printf`, `strlen` and `exit`)

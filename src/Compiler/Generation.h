@@ -8,18 +8,12 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-#include <assert.h>
 
 #include "Parser.h"
 #include "Variable.h"
 #include "Functions.h"
 
 namespace Core::Compiler {
-    // Key is function signature => funcname(arg1, arg2...). For example `printf(String)` and others.
-    struct FunctionOverload {
-        std::unordered_map<FunctionArgs, Function, std::hash<FunctionArgs>> Overloads;
-    };
-
     class Generator {
     private:
         const Node::Programm _Programm;
@@ -28,7 +22,9 @@ namespace Core::Compiler {
         std::stringstream _TextSegment;
         std::stringstream _Output;
 
-        size_t _StackSize;
+        VirtualStack _VStack;
+
+        /*size_t _StackSize;
 
         void _StackPush(const std::string& value) {
             this->_Output << "\tpush " << value << "\n";
@@ -40,7 +36,7 @@ namespace Core::Compiler {
             --this->_StackSize;
         }
 
-        std::unordered_map<std::string, Variable> _Vars;
+        std::unordered_map<std::string, Variable> _Vars;*/
         std::unordered_map<std::string, FunctionOverload> _Functions;
         std::unordered_map<size_t, std::string> _PositionFnArgsInFnCall;
 
@@ -51,18 +47,19 @@ namespace Core::Compiler {
         auto DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType>;
         auto DefineTermType(const Node::Term* Term) -> std::optional<VariableType>;
 
-        auto GenerateTerm(const Node::Term* Term) -> void;
+        auto GenerateTerm(const Node::Term* Term, const std::string& where) -> void;
 
-        auto GenerateIntegerBinaryExpression(const Node::BinaryExpression* BinaryExpression) -> void;
-        auto GenerateStringBinaryExpression(const Node::BinaryExpression* BinaryExpression) -> void;
-        auto GenerateBoolBinaryExpression(const Node::BinaryExpression* BinaryExpression) -> void;
+        auto GenerateIntegerBinaryExpression(const Node::BinaryExpression* BinaryExpression, const std::string& where) -> void;
+        auto GenerateStringBinaryExpression(const Node::BinaryExpression* BinaryExpression, const std::string& where) -> void;
+        auto GenerateBoolBinaryExpression(const Node::BinaryExpression* BinaryExpression, const std::string& where) -> void;
 
-        auto GenerateBinaryExpression(const Node::BinaryExpression* BinaryExpression) -> void;
+        auto GenerateBinaryExpression(const Node::BinaryExpression* BinaryExpression, const std::string& where) -> void;
 
-        auto GenetateExpression(const Node::Expression* Expression) -> void;
+        auto GenetateExpression(const Node::Expression* Expression, const std::string& where) -> void;
 
         auto GenetateStatement(const Node::Statement* Statement) -> void;
 
+        auto GenetateScope(const std::vector<Node::Statement> &Statements) -> void;
         [[nodiscard]] auto GenetateProgramm() -> std::string;
     };
 }

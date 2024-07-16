@@ -6,4 +6,3 @@ let z = 3;
 
 printf("x = %d\ny = %d\nz = %d\n", x, y, z);
 
-exit(0);
