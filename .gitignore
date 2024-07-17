@@ -2,5 +2,4 @@
 .idea
 cmake-build-debug
 cmake-build-release
-lc-build/out
-lc-build/out.o
+/lc-build/*

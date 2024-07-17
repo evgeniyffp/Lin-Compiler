@@ -509,7 +509,7 @@ namespace Core::Compiler {
                 generator->_Output << "\tcall " << FnOverload.AsmName << "\n";
             }
 
-            void operator()(const Node::StatementScope* StatementScope) const {
+            void operator()(const Node::StatementScope *StatementScope) const {
                 generator->GenetateStatementScope(StatementScope->Statements);
             }
         };
@@ -518,7 +518,7 @@ namespace Core::Compiler {
         std::visit(visitors, Statement->var);
     }
 
-    auto Generator::GenetateStatementScope(const std::vector<Node::Statement*>& Statements) -> void {
+    auto Generator::GenetateStatementScope(const std::vector<Node::Statement *> &Statements) -> void {
         this->_VStack.IncCurrentLevelScope();
         for (const auto& Statement : Statements) {
             this->GenetateStatement(Statement);

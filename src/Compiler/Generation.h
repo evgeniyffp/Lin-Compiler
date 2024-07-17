@@ -57,7 +57,7 @@ namespace Core::Compiler {
 
         auto GenetateExpression(const Node::Expression* Expression, const std::string& where) -> void;
 
-        auto GenetateStatementScope(const std::vector<Node::Statement*>& Statements) -> void;
+        auto GenetateStatementScope(const std::vector<Node::Statement *> &Statements) -> void;
 
         auto GenetateStatement(const Node::Statement* Statement) -> void;
 
