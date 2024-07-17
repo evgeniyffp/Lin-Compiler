@@ -48,7 +48,7 @@ namespace Core::Compiler {
         explicit VirtualStack(std::stringstream& out) : out(out), Scopes(100) {}
 
         void Push(const Variable& Var, const std::string& what) {
-            this->Scopes[this->CurrentLevelScope].push_back(Var);
+            this->Scopes[this->CurrentLevelScope].insert(this->Scopes[this->CurrentLevelScope].begin(), Var);
             //out << "\tpush " << what << "\n";
             out << "\tmov qword [rbp - " << this->CalculateLock(Var.Name) << "], " << what << "\n";
         }
