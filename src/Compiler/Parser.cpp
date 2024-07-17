@@ -224,10 +224,27 @@ namespace Core::Compiler {
         return ExpressionrLhs;
     }
 
-    std::optional<Node::Statement> Parser::ParseStatement() {
+    auto Parser::ParseStatementScope() -> std::optional<Node::StatementScope *> {
+        auto ReturnValue = this->_Allocator.allocate<Node::StatementScope>();
+
+        while (this->_Peek().has_value()) {
+            if (auto Statement = this->ParseStatement()) {
+                ReturnValue->Statements.push_back(Statement.value());
+            }
+            else {
+                break;
+            }
+        }
+
+        return ReturnValue;
+    }
+
+    std::optional<Node::Statement*> Parser::ParseStatement() {
         if (!this->_Peek().has_value()) {
             return {};
         }
+
+        auto ReturnStatement = this->_Allocator.allocate<Node::Statement>();
 
         if (this->_Peek().value().type == TokenType::Let) {
             this->_Consume();
@@ -259,7 +276,7 @@ namespace Core::Compiler {
 
             this->_TryConsume(TokenType::CommandEnd, "Expected `;`! ");
 
-            return Node::Statement{.var = StatementLet};
+            ReturnStatement->var = StatementLet;
         }
         else if (this->_Peek().value().type == TokenType::Word) {
             auto StatementFunction = this->_Allocator.allocate<Node::StatementFunctionCall>();
@@ -293,12 +310,24 @@ namespace Core::Compiler {
 
             this->_TryConsume(TokenType::CommandEnd, "Expected `;`!");
 
-            return Node::Statement{.var = StatementFunction};
-
+            ReturnStatement->var = StatementFunction;
+        }
+        else if (this->_Peek().value().type == TokenType::LeftBrace) {
+            this->_Consume();
+            if (auto StatementScope = this->ParseStatementScope()) {
+                ReturnStatement->var = StatementScope.value();
+            }
+            else {
+                std::cerr << "Unable to parse scope\n";
+                exit(EXIT_FAILURE);
+            }
+            this->_TryConsume(TokenType::RightBrace, "Expected `}`!");
         }
         else {
             return {};
         }
+
+        return ReturnStatement;
     }
 
     auto Parser::ParseProgramm() -> std::optional<Node::Programm> {

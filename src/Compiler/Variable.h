@@ -59,29 +59,39 @@ namespace Core::Compiler {
         }
 
         size_t CalculateLock(const std::string& VariableName) {
-            size_t lock = 0;
+            size_t lock = this->CalculateMaxLock();
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
                 for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
                     if (this->Scopes[i][j].Name == VariableName) {
                         return lock;
                     }
-                    lock += SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";
             exit(EXIT_FAILURE);
         }
 
-        void VariableMove(const std::string& VariableName, const std::string& where) {
+        size_t CalculateMaxLock() {
             size_t lock = 0;
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
                 for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
+                    lock += SizeVariable(this->Scopes[i][j]);
+                }
+            }
+            return lock;
+        }
+
+        void VariableMove(const std::string& VariableName, const std::string& where) {
+            size_t lock = this->CalculateMaxLock();
+            for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
+                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
                     if (this->Scopes[i][j].Name == VariableName) {
-                        out << "\tmov rax, [rsp - " << lock << "]\n";
+                        out << "\tmov rax, qword [rbp - " << lock << "]\n";
                         out << "\tmov " << where << ", rax\n";
                         return;
                     }
-                    lock += SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";
@@ -89,13 +99,13 @@ namespace Core::Compiler {
         }
 
         Variable Find(const std::string& VariableName) {
-            size_t lock = 0;
+            size_t lock = this->CalculateMaxLock();
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
                 for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
                     if (this->Scopes[i][j].Name == VariableName) {
                         return this->Scopes[i][j];
                     }
-                    lock += SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";

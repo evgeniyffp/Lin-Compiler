@@ -33,7 +33,10 @@ namespace Core::Compiler {
         Word,
 
         LeftParent,
-        RightParent
+        RightParent,
+
+        LeftBrace,
+        RightBrace
     };
 
     inline bool IsBinaryOperator(const TokenType& Type) {

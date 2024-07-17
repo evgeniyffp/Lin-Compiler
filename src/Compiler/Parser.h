@@ -103,16 +103,23 @@ namespace Core::Compiler {
             Node::Expression* Expression;
         };
 
+        struct Statement;
+
+        struct StatementScope {
+            std::vector<Node::Statement*> Statements;
+        };
+
         struct Statement {
             std::variant<
                 Node::StatementFunctionCall*,
-                Node::StatementLet*
+                Node::StatementLet*,
+                Node::StatementScope*
             >var;
         };
 
         // PROGRAMM ---------------------------------------------------------------------
         struct Programm {
-            std::vector<Node::Statement> Statements;
+            std::vector<Node::Statement*> Statements;
         };
     }
 
@@ -135,7 +142,9 @@ namespace Core::Compiler {
         auto ParseTerm() ->std::optional<Node::Term*>;
         auto ParseExpression(uint16_t MinPriority = MaxBinaryPriority) -> std::optional<Node::Expression*>;
 
-        auto ParseStatement() -> std::optional<Node::Statement>;
+        auto ParseStatementScope() -> std::optional<Node::StatementScope*>;
+
+        auto ParseStatement() -> std::optional<Node::Statement*>;
 
         auto ParseProgramm() -> std::optional<Node::Programm>;
     };

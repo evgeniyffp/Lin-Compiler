@@ -4,7 +4,7 @@
 #include "Generation.h"
 
 namespace Core::Compiler {
-    Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output) /*,_StackSize(0)*/ {
+    Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output) {
     }
 
     auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VariableType> {
@@ -157,7 +157,6 @@ namespace Core::Compiler {
             }
 
             void operator()(const Node::TermIdentifier* TermIdentifier) const {
-                //Type = generator->_Vars.at(TermIdentifier->Identifier.value.value()).Type;
                 Type = generator->_VStack.Find(TermIdentifier->Identifier.value.value()).Type;
             }
 
@@ -180,14 +179,10 @@ namespace Core::Compiler {
             Generator* generator;
             const std::string& where;
             void operator()(const Node::TermIntegerLiteral* TermIntegerLiteral) const {
-                //generator->_Output << "\tmov rax, " << TermIntegerLiteral->IntegerLiteral.value.value() << "\n";
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", " << TermIntegerLiteral->IntegerLiteral.value.value() << "\n";
             }
 
             void operator()(const Node::TermBoolLiteral* TermBoolLiteral) const {
-                //generator->_Output << "\tmov rax, " << TermBoolLiteral->BoolLiteral.value.value() << "\n";
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", " << TermBoolLiteral->BoolLiteral.value.value() << "\n";
             }
 
@@ -212,22 +207,11 @@ namespace Core::Compiler {
 
                 generator->_DataSegment << "\t" << label << " db " << AsmStringValue << 0 << "\n";
 
-                //generator->_Output << "\tmov rax, " << label << "\n";
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", " << label << "\n";
             }
 
             void operator()(const Node::TermIdentifier* TermIdentifier) const {
-                /*if (!generator->_Vars.contains(TermIdentifier->Identifier.value.value())) {
-                    std::cerr << "Undeclared identifier: " << TermIdentifier->Identifier.value.value() << "\n";
-                    exit(EXIT_FAILURE);
-                }
-
-                const auto& var = generator->_Vars.at(TermIdentifier->Identifier.value.value());
-                generator->_StackPush("qword [rsp + " + std::to_string((generator->_StackSize - var.StackLock - 1) * 8) + "]");
-                */
                 generator->_VStack.VariableMove(TermIdentifier->Identifier.value.value(), where);
-                //generator->_Output << "\tpush qword rax\n";
             }
 
             void operator()(const Node::TermParent* TermParent) const {
@@ -247,12 +231,8 @@ namespace Core::Compiler {
                 generator->GenetateExpression(BinaryExpressionAdd->RightHandSide, "rbx");
                 generator->GenetateExpression(BinaryExpressionAdd->LeftHandSide, "rax");
 
-                //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                 generator->_Output << "\tadd rax, rbx\n";
 
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", rax\n";
             }
 
@@ -260,12 +240,8 @@ namespace Core::Compiler {
                 generator->GenetateExpression(BinaryExpressionMultiplication->RightHandSide, "rbx");
                 generator->GenetateExpression(BinaryExpressionMultiplication->LeftHandSide, "rax");
 
-                //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                 generator->_Output << "\timul rax, rbx\n";
 
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", rax\n";
             }
 
@@ -273,12 +249,8 @@ namespace Core::Compiler {
                 generator->GenetateExpression(BinaryExpressionDivision->RightHandSide, "rbx");
                 generator->GenetateExpression(BinaryExpressionDivision->LeftHandSide, "rax");
 
-                //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                 generator->_Output << "\tdiv rbx\n";
 
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", rax\n";
             }
 
@@ -286,12 +258,8 @@ namespace Core::Compiler {
                 generator->GenetateExpression(BinaryExpressionSubtraction->RightHandSide, "rbx");
                 generator->GenetateExpression(BinaryExpressionSubtraction->LeftHandSide, "rax");
 
-                //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                 generator->_Output << "\tsub rax, rbx\n";
 
-                //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                 generator->_Output << "\tmov " << where << ", rax\n";
             }
 
@@ -383,14 +351,10 @@ namespace Core::Compiler {
                         generator->GenetateExpression(BinaryExpressionEqualTo->RightHandSide, "rbx");
                         generator->GenetateExpression(BinaryExpressionEqualTo->LeftHandSide, "rax");
 
-                        //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                        //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                         generator->_Output << "\tcmp rax, rbx\n";
                         generator->_Output << "\tsete cl\n";
                         generator->_Output << "\tmovzx rax, cl\n";
 
-                        //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                         generator->_Output << "\tmov " << where << ", rax\n";
 
                         break;
@@ -423,14 +387,10 @@ namespace Core::Compiler {
                         generator->GenetateExpression(BinaryExpressionNotEqualTo->RightHandSide, "rbx");
                         generator->GenetateExpression(BinaryExpressionNotEqualTo->LeftHandSide, "rax");
 
-                        //generator->_Output << "\tpop rax\n";//generator->_StackPop("rax");
-                        //generator->_Output << "\tpop rbx\n";//generator->_StackPop("rbx");
-
                         generator->_Output << "\tcmp rax, rbx\n";
                         generator->_Output << "\tsetne cl\n";
                         generator->_Output << "\tmovzx rax, cl\n";
 
-                        //generator->_Output << "\tpush rax\n";//generator->_StackPush("rax");
                         generator->_Output << "\tmov " << where << ", rax\n";
 
                         break;
@@ -439,10 +399,8 @@ namespace Core::Compiler {
                         std::cerr << "Don\'t be fount this operator with this var type!\n";
                         exit(EXIT_FAILURE);
                     }
-
                 }
             }
-
         };
 
         BoolBinaryExpressionVisitors visitors{.generator = this, .where = where};
@@ -498,18 +456,6 @@ namespace Core::Compiler {
             Generator* generator;
 
             void operator()(const Node::StatementLet* StatementLet) const {
-                /*if (generator->_Vars.contains(StatementLet->Identifier.value.value())) {
-                    std::cerr << "Identifier already used: " << StatementLet->Identifier.value.value() << "\n";
-                    exit(EXIT_FAILURE);
-                }
-                auto Type = generator->DefineExpressionType(StatementLet->Expression);
-                if (!Type.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-                generator->_Vars.insert({StatementLet->Identifier.value.value(), Variable{generator->_StackSize, Type.value()}});
-                generator->GenetateExpression(StatementLet->Expression);
-                */
                 auto Type = generator->DefineExpressionType(StatementLet->Expression);
                 if (!Type.has_value()) {
                     std::cerr << "Error in defining var\'s type! \n";
@@ -517,7 +463,6 @@ namespace Core::Compiler {
                 }
 
                 generator->GenetateExpression(StatementLet->Expression, "rax");
-                //generator->_Output << "\tpop rax\n";
                 generator->_VStack.Push({0, Type.value(), StatementLet->Identifier.value.value()}, "qword rax");
             }
 
@@ -557,18 +502,15 @@ namespace Core::Compiler {
                     exit(EXIT_FAILURE);
                 }
 
-                // if (generator->_Functions[StatementFunction->FunctionName].Overloads.find(FunctionArgs) == generator->_Functions[StatementFunction->FunctionName].Overloads.end()) {
-                //     std::cerr << "Function with this args don\'t be found!\n";
-                //     exit(EXIT_FAILURE);
-                // }
-
                 for (size_t i = 0; i < generator->_PositionFnArgsInFnCall.size() && i < StatementFunction->Arguments.size(); ++i) {
                     generator->GenetateExpression(StatementFunction->Arguments.at(i), generator->_PositionFnArgsInFnCall[i]);
-                    //generator->_StackPop(generator->_PositionFnArgsInFnCall[i]);
-                    //generator->_Output << "\tpop " << generator->_PositionFnArgsInFnCall[i] << "\n";
                 }
 
                 generator->_Output << "\tcall " << FnOverload.AsmName << "\n";
+            }
+
+            void operator()(const Node::StatementScope* StatementScope) const {
+                generator->GenetateStatementScope(StatementScope->Statements);
             }
         };
 
@@ -576,10 +518,10 @@ namespace Core::Compiler {
         std::visit(visitors, Statement->var);
     }
 
-    auto Generator::GenetateScope(const std::vector<Node::Statement>& Statements) -> void {
+    auto Generator::GenetateStatementScope(const std::vector<Node::Statement*>& Statements) -> void {
         this->_VStack.IncCurrentLevelScope();
         for (const auto& Statement : Statements) {
-            this->GenetateStatement(&Statement);
+            this->GenetateStatement(Statement);
             this->_Output << "\n";
         }
         this->_VStack.ClearScope();
@@ -600,7 +542,6 @@ namespace Core::Compiler {
         this->_TextSegment << "\textern __malloc_init\n";
         this->_TextSegment << "\textern __malloc_deinit\n";
 
-        //this->_Functions["exit"].Overloads = {{{{VariableType::Integer}, {}}, Function{{}, "__exit"}}};
         this->_Functions["printf"].Overloads = {{{{VariableType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}};
         this->_Functions["strlen"].Overloads = {{{{VariableType::String}, {}}, Function{{VariableType::Integer}, "__strlen"}}};
 
@@ -618,9 +559,11 @@ namespace Core::Compiler {
         this->_Output << "main:\n";
 
         this->_Output << "\tpush rbp\n";
-        this->_Output << "\tmov rbp, rsp\n\n";
-        this->GenetateScope(this->_Programm.Statements);
+        this->_Output << "\tmov rbp, rsp\n";
+        this->_Output << "\tsub rsp, 16\n\n";
+        this->GenetateStatementScope(this->_Programm.Statements);
         this->_Output << "\tpop rbp\n";
+        this->_Output << "\tadd rsp, 16\n";
         this->_Output << "\tret\n\n";
 
         for (const auto& FuncOverload : this->_Functions) {
