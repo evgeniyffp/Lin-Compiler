@@ -386,6 +386,29 @@ namespace Core::Compiler {
 
             ReturnStatement->var = StatementIf;
         }
+        else if (this->_Peek().value().type == TokenType::While) {
+            this->_Consume();
+
+            auto StatementWhile = this->_Allocator.allocate<Node::StatementWhile>();
+
+            if (auto Expression = this->ParseExpression()) {
+                StatementWhile->Condition = Expression.value();
+            }
+            else {
+                std::cerr << "Expected expression! \n";
+                exit(EXIT_FAILURE);
+            }
+
+            if (auto Statement = this->ParseStatement()) {
+                StatementWhile->Statement = Statement.value();
+            }
+            else {
+                std::cerr << "Expected statement! \n";
+                exit(EXIT_FAILURE);
+            }
+
+            ReturnStatement->var = StatementWhile;
+        }
         else {
             return {};
         }

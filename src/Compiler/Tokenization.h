@@ -16,6 +16,8 @@ namespace Core::Compiler {
         If,
         Else,
 
+        While,
+
         Equal,
 
         Plus,

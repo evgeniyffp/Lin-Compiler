@@ -45,7 +45,7 @@ auto main(int argc, char** argv) -> int {
 
     outfile.close();
 
-    if (system("nasm -f elf64 ../lc-build/out.asm"))
+    if (system("nasm -felf64 ../lc-build/out.asm"))
         exit(EXIT_FAILURE);
 
     if (system("nasm -felf64 ../stdlib/asm/asmcore.asm"))

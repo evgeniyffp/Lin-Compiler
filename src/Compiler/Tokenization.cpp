@@ -57,6 +57,11 @@ namespace Core::Compiler {
                     buffer.clear();
                     continue;
                 }
+                else if (buffer == "while") {
+                    tokens.push_back({TokenType::While});
+                    buffer.clear();
+                    continue;
+                }
                 else {
                     tokens.push_back({.type = TokenType::Word, .value = buffer});
                     buffer.clear();

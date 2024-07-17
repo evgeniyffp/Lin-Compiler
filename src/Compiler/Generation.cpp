@@ -543,8 +543,50 @@ namespace Core::Compiler {
                 generator->_Output << EndLabel << ":\n";
             }
 
+            void operator()(const Node::StatementWhile* StatementWhile) const {
+                if (auto ExpressionType = generator->DefineExpressionType(StatementWhile->Condition)) {
+                    if (ExpressionType.value() != VariableType::Bool) {
+                        std::cerr << "Expected bool expression\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                std::string StartLabel = ".while" + std::to_string(reinterpret_cast<size_t>(StatementWhile));
+                std::string EndLabel = ".end_while" + std::to_string(reinterpret_cast<size_t>(StatementWhile));
+
+                generator->_Output << "\t" << StartLabel << ":\n";
+
+                generator->GenetateExpression(StatementWhile->Condition, "rax");
+
+                generator->_Output << "\tcmp rax, 1\n";
+                generator->_Output << "\tjne " << EndLabel << "\n";
+
+                generator->GenetateStatement(StatementWhile->Statement);
+                generator->_Output << "\tjmp " << StartLabel << "\n";
+
+                generator->_Output << EndLabel << ":\n";
+            }
+
             void operator()(const Node::StatementAssignment* StatementAssignment) const {
                 generator->GenetateExpression(StatementAssignment->Expression, "rax");
+
+                auto VarType = generator->_VStack.Find(StatementAssignment->LetName).Type;
+                auto ExpressionType = generator->DefineExpressionType(StatementAssignment->Expression);
+
+                if (!ExpressionType.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (VarType != ExpressionType.value()) {
+                    std::cerr << "Let `" << StatementAssignment->LetName << "` and assignment\'s expr has diffrent types!\n";
+                    exit(EXIT_FAILURE);
+                }
+
                 generator->_Output << "\tmov qword [rbp - " << generator->_VStack.CalculateLock(StatementAssignment->LetName) << "], rax" << "\n";
             }
         };

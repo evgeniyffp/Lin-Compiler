@@ -120,13 +120,19 @@ namespace Core::Compiler {
             Node::Expression* Expression;
         };
 
+        struct StatementWhile {
+            Node::Expression* Condition;
+            Node::Statement* Statement;
+        };
+
         struct Statement {
             std::variant<
                 Node::StatementFunctionCall*,
                 Node::StatementLet*,
                 Node::StatementScope*,
                 Node::StatementIf*,
-                Node::StatementAssignment*
+                Node::StatementAssignment*,
+                Node::StatementWhile*
             >var;
         };
 
