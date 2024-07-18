@@ -512,6 +512,36 @@ namespace Core::Compiler {
             void operator()(const Node::StatementScope *StatementScope) const {
                 generator->GenetateStatementScope(StatementScope->Statements);
             }
+
+            void operator()(const Node::StatementIf* StatementIf) const {
+                if (auto ExpressionType = generator->DefineExpressionType(StatementIf->Condition)) {
+                    if (ExpressionType.value() != VariableType::Bool) {
+                        std::cerr << "Expected bool expression\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                std::string ElseLabel = ".else" + std::to_string(reinterpret_cast<size_t>(StatementIf));
+                std::string EndLabel = ".end" + std::to_string(reinterpret_cast<size_t>(StatementIf));
+
+                generator->GenetateExpression(StatementIf->Condition, "rax");
+
+                generator->_Output << "\tcmp rax, 1\n";
+                generator->_Output << "\tjne " << ElseLabel << "\n";
+
+                generator->GenetateStatement(StatementIf->IfStatement);
+                generator->_Output << "\tjmp " << EndLabel << "\n";
+
+                generator->_Output << ElseLabel << ":\n";
+                if (StatementIf->ElseStatement.has_value()) {
+                    generator->GenetateStatement(StatementIf->ElseStatement.value());
+                }
+                generator->_Output << EndLabel << ":\n";
+            }
         };
 
         StatementVisitors visitors{.generator = this};
@@ -528,12 +558,7 @@ namespace Core::Compiler {
     }
 
     auto Generator::GenetateProgramm() -> std::string {
-        this->_PositionFnArgsInFnCall[0] = "rdi";
-        this->_PositionFnArgsInFnCall[1] = "rsi";
-        this->_PositionFnArgsInFnCall[2] = "rdx";
-        this->_PositionFnArgsInFnCall[3] = "rcx";
-        this->_PositionFnArgsInFnCall[4] = "r8";
-        this->_PositionFnArgsInFnCall[5] = "r9";
+        this->_PositionFnArgsInFnCall = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
 
         this->_TextSegment << "section .text\n";
         this->_TextSegment << "\textern __malloc\n";

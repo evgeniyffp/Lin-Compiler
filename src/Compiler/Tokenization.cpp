@@ -47,6 +47,16 @@ namespace Core::Compiler {
                     buffer.clear();
                     continue;
                 }
+                else if (buffer == "if") {
+                    tokens.push_back({TokenType::If});
+                    buffer.clear();
+                    continue;
+                }
+                else if (buffer == "else") {
+                    tokens.push_back({TokenType::Else});
+                    buffer.clear();
+                    continue;
+                }
                 else {
                     tokens.push_back({.type = TokenType::Word, .value = buffer});
                     buffer.clear();

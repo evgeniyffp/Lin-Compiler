@@ -24,21 +24,8 @@ namespace Core::Compiler {
 
         VirtualStack _VStack;
 
-        /*size_t _StackSize;
-
-        void _StackPush(const std::string& value) {
-            this->_Output << "\tpush " << value << "\n";
-            ++this->_StackSize;
-        }
-
-        void _StackPop(const std::string& value = "") {
-            this->_Output << "\tpop " << value << "\n";
-            --this->_StackSize;
-        }
-
-        std::unordered_map<std::string, Variable> _Vars;*/
         std::unordered_map<std::string, FunctionOverload> _Functions;
-        std::unordered_map<size_t, std::string> _PositionFnArgsInFnCall;
+        std::vector<std::string> _PositionFnArgsInFnCall;
 
     public:
         explicit Generator(Node::Programm programm);

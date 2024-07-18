@@ -1,7 +1,7 @@
 #include<stdarg.h>
 
-extern int puts (const char *);
-extern int putchar (int);
+extern int puts(const char*);
+extern int putchar(int);
 
 char *convert(unsigned int num, int base)
 {
@@ -23,19 +23,20 @@ char *convert(unsigned int num, int base)
 
 void __printf(char* format,...)
 {
-    char *traverse;
-    unsigned int i;
-    char *s;
+    unsigned int ui;
+    int i;
+    char* s;
+    char c;
 
     //Module 1: Initializing __printf's arguments
     va_list arg;
     va_start(arg, format);
 
-    for(traverse = format; *traverse != '\0'; traverse++)
+    for(char* traverse = format; *traverse != '\0'; traverse++)
     {
-        while( *traverse != '%' )
+        while(*traverse != '%')
         {
-            if( *traverse == '\0') return;
+            if(*traverse == '\0') return;
             putchar(*traverse);
             traverse++;
         }
@@ -45,30 +46,39 @@ void __printf(char* format,...)
         //Module 2: Fetching and executing arguments
         switch(*traverse)
         {
-            case 'c' : i = va_arg(arg,int);     //Fetch char argument
-                        putchar(i);
-                        break;
+            case 'c' : {
+                c = va_arg(arg,int);     //Fetch char argument
+                putchar(c);
+                break;
+            }
 
-            case 'd' : i = va_arg(arg,int);         //Fetch Decimal/Integer argument
-                        if(i<0)
-                        {
-                            i = -i;
-                            putchar('-');
-                        }
-                        puts(convert(i,10));
-                        break;
+            case 'd' : {
+                i = va_arg(arg, int);         //Fetch Decimal/Integer argument
+                if(i < 0) {
+                    i = -i;
+                    putchar('-');
+                }
+                puts(convert(i, 10));
+                break;
+            }
 
-            case 'o': i = va_arg(arg,unsigned int); //Fetch Octal representation
-                        puts(convert(i,8));
-                        break;
+            case 'o': {
+                ui = va_arg(arg, unsigned int); //Fetch Octal representation
+                puts(convert(ui,8));
+                break;
+            }
 
-            case 's': s = va_arg(arg,char *);       //Fetch string
-                        puts(s);
-                        break;
+            case 's': {
+                s = va_arg(arg,char *);       //Fetch string
+                puts(s);
+                break;
+            }
 
-            case 'x': i = va_arg(arg,unsigned int); //Fetch Hexadecimal representation
-                        puts(convert(i,16));
-                        break;
+            case 'x': {
+                i = va_arg(arg,unsigned int); //Fetch Hexadecimal representation
+                puts(convert(i,16));
+                break;
+            }
         }
     }
 

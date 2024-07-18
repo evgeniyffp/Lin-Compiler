@@ -323,6 +323,40 @@ namespace Core::Compiler {
             }
             this->_TryConsume(TokenType::RightBrace, "Expected `}`!");
         }
+        else if (this->_Peek().value().type == TokenType::If) {
+            this->_Consume();
+
+            auto StatementIf = this->_Allocator.allocate<Node::StatementIf>();
+
+            if (auto Expression = this->ParseExpression()) {
+                StatementIf->Condition = Expression.value();
+            }
+            else {
+                std::cerr << "Expected expression! \n";
+                exit(EXIT_FAILURE);
+            }
+
+            if (auto Statement = this->ParseStatement()) {
+                StatementIf->IfStatement = Statement.value();
+            }
+            else {
+                std::cerr << "Expected statement! \n";
+                exit(EXIT_FAILURE);
+            }
+
+            if (this->_Peek().has_value() && this->_Peek().value().type == TokenType::Else) {
+                this->_Consume();
+                if (auto Statement = this->ParseStatement()) {
+                    StatementIf->ElseStatement = Statement.value();
+                }
+                else {
+                    std::cerr << "Expected statement! \n";
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            ReturnStatement->var = StatementIf;
+        }
         else {
             return {};
         }

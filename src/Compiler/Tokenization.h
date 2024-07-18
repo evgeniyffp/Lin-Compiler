@@ -13,6 +13,9 @@ namespace Core::Compiler {
     enum class TokenType {
         Let,
 
+        If,
+        Else,
+
         Equal,
 
         Plus,

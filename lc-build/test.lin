@@ -1,78 +1,10 @@
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 10;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 3;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 1;
-let x = 11212;
-{}
-printf("%d\n", x);
+if (10 == 11) {
+    printf("1\n");
+}
+else if (10 == 101) {
+    printf("2\n");
+}
+else if (10 == 120) {
+    printf("3\n");
+}
+else printf("4\n");

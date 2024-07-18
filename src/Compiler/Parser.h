@@ -109,11 +109,18 @@ namespace Core::Compiler {
             std::vector<Node::Statement*> Statements;
         };
 
+        struct StatementIf {
+            Node::Expression* Condition;
+            Node::Statement* IfStatement;
+            std::optional<Node::Statement*> ElseStatement;
+        };
+
         struct Statement {
             std::variant<
                 Node::StatementFunctionCall*,
                 Node::StatementLet*,
-                Node::StatementScope*
+                Node::StatementScope*,
+                Node::StatementIf*
             >var;
         };
 

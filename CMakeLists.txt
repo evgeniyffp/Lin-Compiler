@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_C_STANDARD 99)
-project(Allocator)
-add_executable(Allocator
-        stdlib/allocator/test.c
+project(Test)
+add_executable(Test
+        stdlib/test.c
+        stdlib/printf/printf.c
+        stdlib/printf/printf.h
+        stdlib/asm/asmcore.o
 )
 
 set(CMAKE_CXX_STANDARD 20)
