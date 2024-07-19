@@ -509,7 +509,7 @@ namespace Core::Compiler {
                 generator->_Output << "\tcall " << FnOverload.AsmName << "\n";
             }
 
-            void operator()(const Node::StatementScope *StatementScope) const {
+            void operator()(const Node::StatementScope* StatementScope) const {
                 generator->GenetateStatementScope(StatementScope->Statements);
             }
 
@@ -541,6 +541,11 @@ namespace Core::Compiler {
                     generator->GenetateStatement(StatementIf->ElseStatement.value());
                 }
                 generator->_Output << EndLabel << ":\n";
+            }
+
+            void operator()(const Node::StatementAssignment* StatementAssignment) const {
+                generator->GenetateExpression(StatementAssignment->Expression, "rax");
+                generator->_Output << "\tmov qword [rbp - " << generator->_VStack.CalculateLock(StatementAssignment->LetName) << "], rax" << "\n";
             }
         };
 

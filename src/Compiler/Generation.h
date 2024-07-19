@@ -1,7 +1,3 @@
-//
-// Created by Евгений on 20.06.2024.
-//
-
 #ifndef GENERATION_H
 #define GENERATION_H
 

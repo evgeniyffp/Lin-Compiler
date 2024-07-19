@@ -4,6 +4,8 @@ Not done:
 1) Functions in language
 2) String binary expression(`+`, `*`)
 3) Refactoring
+4) Classes
+5) Namespaces
 
 Done:
 1) Scopes

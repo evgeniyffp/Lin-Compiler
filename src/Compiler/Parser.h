@@ -115,12 +115,18 @@ namespace Core::Compiler {
             std::optional<Node::Statement*> ElseStatement;
         };
 
+        struct StatementAssignment {
+            std::string LetName;
+            Node::Expression* Expression;
+        };
+
         struct Statement {
             std::variant<
                 Node::StatementFunctionCall*,
                 Node::StatementLet*,
                 Node::StatementScope*,
-                Node::StatementIf*
+                Node::StatementIf*,
+                Node::StatementAssignment*
             >var;
         };
 

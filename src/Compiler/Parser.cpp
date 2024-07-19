@@ -279,38 +279,67 @@ namespace Core::Compiler {
             ReturnStatement->var = StatementLet;
         }
         else if (this->_Peek().value().type == TokenType::Word) {
-            auto StatementFunction = this->_Allocator.allocate<Node::StatementFunctionCall>();
+            auto Word = this->_Consume().value.value();
 
-            auto FunctionName = this->_Consume().value.value();
-            StatementFunction->FunctionName = FunctionName;
+            if (!this->_Peek().has_value()) {
+                return {};
+            }
 
-            this->_TryConsume(TokenType::LeftParent, "Expected `(`!");
+            if (this->_Peek().value().type == TokenType::LeftParent) {
+                this->_Consume();
 
-            do {
+                auto StatementFunction = this->_Allocator.allocate<Node::StatementFunctionCall>();
+
+                StatementFunction->FunctionName = Word;
+
+                do {
+                    if (auto Expression = this->ParseExpression()) {
+                        StatementFunction->Arguments.push_back(Expression.value());
+                    }
+                    else {
+                        std::cerr << "Invalid expression!\n";
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if (!this->_Peek().has_value()) {
+                        break;
+                    }
+
+                    if (this->_Peek().value().type != TokenType::Comma) {
+                        break;
+                    }
+
+                    this->_Consume();
+                } while(true);
+
+                this->_TryConsume(TokenType::RightParent, "Expected `)`!");
+
+                this->_TryConsume(TokenType::CommandEnd, "Expected `;`!");
+
+                ReturnStatement->var = StatementFunction;
+            }
+            else if (this->_Peek().value().type == TokenType::Equal) {
+                this->_Consume();
+
+                auto StatementAssignment = this->_Allocator.allocate<Node::StatementAssignment>();
+
+                StatementAssignment->LetName = Word;
+
                 if (auto Expression = this->ParseExpression()) {
-                    StatementFunction->Arguments.push_back(Expression.value());
+                    StatementAssignment->Expression = Expression.value();
                 }
                 else {
-                    std::cerr << "Invalid expression!\n";
+                    std::cerr << "Unable to parse expression\n";
                     exit(EXIT_FAILURE);
                 }
 
-                if (!this->_Peek().has_value()) {
-                    break;
-                }
+                this->_TryConsume(TokenType::CommandEnd, "Expected `;`!");
 
-                if (this->_Peek().value().type != TokenType::Comma) {
-                    break;
-                }
-
-                this->_Consume();
-            } while(true);
-
-            this->_TryConsume(TokenType::RightParent, "Expected `)`!");
-
-            this->_TryConsume(TokenType::CommandEnd, "Expected `;`!");
-
-            ReturnStatement->var = StatementFunction;
+                ReturnStatement->var = StatementAssignment;
+            }
+            else {
+                return {};
+            }
         }
         else if (this->_Peek().value().type == TokenType::LeftBrace) {
             this->_Consume();
