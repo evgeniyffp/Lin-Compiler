@@ -259,6 +259,32 @@ namespace Core::Compiler {
                 exit(EXIT_FAILURE);
             }
 
+            if (this->_Peek().has_value() && this->_Peek().value().type == TokenType::Pointer) {
+                this->_Consume();
+
+                if (this->_Peek().has_value()) {
+                    switch (this->_Peek().value().type) {
+                        case TokenType::IntegerType: {
+                            StatementLet->VarType = VariableType::Integer;
+                            break;
+                        } case TokenType::StringType: {
+                            StatementLet->VarType = VariableType::String;
+                            break;
+                        } case TokenType::BoolType: {
+                            StatementLet->VarType = VariableType::Bool;
+                            break;
+                        }
+                        default: {
+                            std::cerr << "Expected variable type! \n";
+                            exit(EXIT_FAILURE);}
+                    }
+                    this->_Consume();
+                }
+            }
+            else {
+                StatementLet->VarType = {};
+            }
+
             this->_TryConsume(TokenType::Equal, "Expected `=`! ");
 
             if (!this->_Peek().has_value()){

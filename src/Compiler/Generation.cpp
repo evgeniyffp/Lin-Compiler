@@ -462,6 +462,11 @@ namespace Core::Compiler {
                     exit(EXIT_FAILURE);
                 }
 
+                if (StatementLet->VarType.has_value() && (Type.value() != StatementLet->VarType.value())) {
+                    std::cerr << "Different variable type and expression type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
                 generator->GenetateExpression(StatementLet->Expression, "rax");
                 generator->_VStack.Push({0, Type.value(), StatementLet->Identifier.value.value()}, "qword rax");
             }

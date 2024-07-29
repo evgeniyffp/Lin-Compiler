@@ -1,6 +1,6 @@
-let x = 1;
-while (x != 11) {
-    printf("%d ", x);
+let x -> int = 1;
+while x != 100 {
+    printf("%d\n", x);
     x = x + 1;
 }
 printf("\n");

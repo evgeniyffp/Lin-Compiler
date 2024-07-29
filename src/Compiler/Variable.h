@@ -1,18 +1,12 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include <stdint.h>
 #include <stdlib.h>
-#include <stack>
 #include <sstream>
 
-namespace Core::Compiler {
-    enum class VariableType : int8_t {
-        Integer,
-        String,
-        Bool
-    };
+#include "VariableType.h"
 
+namespace Core::Compiler {
     // Now all types of var must be 8 bytes!!!
     struct Variable {
         size_t StackLock;

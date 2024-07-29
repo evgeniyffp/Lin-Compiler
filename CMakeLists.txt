@@ -6,7 +6,6 @@ add_executable(Test
         stdlib/test.c
         stdlib/printf/printf.c
         stdlib/printf/printf.h
-        stdlib/asm/asmcore.o
 )
 
 set(CMAKE_CXX_STANDARD 20)
@@ -24,5 +23,6 @@ add_executable(Compiler
         src/Compiler/Variable.h
         src/Compiler/VectorHasher.h
         src/Compiler/Functions.h
+        src/Compiler/VariableType.h
 )
 target_link_libraries(Compiler stdc++)

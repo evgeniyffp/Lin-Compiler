@@ -1,9 +1,5 @@
-//
-// Created by Евгений on 20.06.2024.
-//
-
-#include <iostream> // for std::cerr
-#include <utility> // for std::move
+#include <iostream>
+#include <utility>
 #include <fstream>
 
 #include "Tokenization.h"
@@ -62,6 +58,21 @@ namespace Core::Compiler {
                     buffer.clear();
                     continue;
                 }
+                else if (buffer == "int") {
+                    tokens.push_back({TokenType::IntegerType});
+                    buffer.clear();
+                    continue;
+                }
+                else if (buffer == "string") {
+                    tokens.push_back({TokenType::StringType});
+                    buffer.clear();
+                    continue;
+                }
+                else if (buffer == "bool") {
+                    tokens.push_back({TokenType::BoolType});
+                    buffer.clear();
+                    continue;
+                }
                 else {
                     tokens.push_back({.type = TokenType::Word, .value = buffer});
                     buffer.clear();
@@ -91,7 +102,7 @@ namespace Core::Compiler {
                                         break;
                                     case 't':
                                         this->_consume();
-                                        buffer.push_back('\n');
+                                        buffer.push_back('\t');
                                         break;
                                     default:
                                         std::cerr << "Unknown value: `\\" << this->_peek().value() << "` !\n";
@@ -153,7 +164,13 @@ namespace Core::Compiler {
                         break;
                     }
                     case '-': {
-                        tokens.push_back({TokenType::Subtraction});
+                        if (this->_peek(1).has_value() && this->_peek(1).value() == '>') {
+                            tokens.push_back({TokenType::Pointer});
+                            this->_consume();
+                        }
+                        else {
+                            tokens.push_back({TokenType::Subtraction});
+                        }
                         break;
                     }
                     case '*': {

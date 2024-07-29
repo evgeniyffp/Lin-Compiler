@@ -13,6 +13,16 @@ namespace Core::Compiler {
     enum class TokenType {
         Let,
 
+        Pointer,
+
+        IntegerType,
+        StringType,
+        BoolType,
+
+        IntegerLiteral,
+        StringLiteral,
+        BoolLiteral,
+
         If,
         Else,
 
@@ -27,10 +37,6 @@ namespace Core::Compiler {
 
         EqualTo,
         NotEqualTo,
-
-        IntegerLiteral,
-        StringLiteral,
-        BoolLiteral,
 
         Comma,
         CommandEnd,

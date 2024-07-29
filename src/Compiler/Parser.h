@@ -5,6 +5,7 @@
 #include <variant>
 
 #include "Tokenization.h"
+#include "VariableType.h"
 #include "../Allocator/ArenaAllocator.h"
 
 namespace Core::Compiler {
@@ -101,6 +102,7 @@ namespace Core::Compiler {
         struct StatementLet {
             Token Identifier;
             Node::Expression* Expression;
+            std::optional<VariableType> VarType;
         };
 
         struct Statement;
