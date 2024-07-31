@@ -1,6 +1,2 @@
-let x -> int = 1;
-while x != 100 {
-    printf("%d\n", x);
-    x = x + 1;
-}
-printf("\n");
+let x = "Hello, World!\n";
+printf(x);

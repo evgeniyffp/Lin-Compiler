@@ -5,8 +5,6 @@ section .text
     global __exit
     global __brk
     global __strlen
-    ;global __printf
-    ;global writeln
     global puts
     global putchar
 
@@ -51,22 +49,3 @@ putchar:
     syscall
     pop rdi
     ret
-
-;__printf:
-;    call __strlen
-;    mov rdx, rax
-;    mov rax, 1
-;    mov rsi, rdi
-;    mov rdi, 1
-;    syscall
-;    mov rsi, rdi
-;    ret
-
-
-;writeln:
-;    push rdi
-;    call __printf
-;    mov rdi, __newline
-;    call __printf
-;    pop rdi
-;    ret

@@ -1,10 +1,12 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include <stdlib.h>
 #include <sstream>
+#include <cassert>
+#include <cstdlib>
 
 #include "VariableType.h"
+#include "Functions.h"
 
 namespace Core::Compiler {
     // Now all types of var must be 8 bytes!!!
@@ -20,7 +22,8 @@ namespace Core::Compiler {
             case VariableType::String:
             case VariableType::Bool:
                 return 8;
-
+            default:
+                assert(false);
         }
     }
 
@@ -39,27 +42,25 @@ namespace Core::Compiler {
 
         std::stringstream& out;
 
-        explicit VirtualStack(std::stringstream& out) : out(out), Scopes(100) {}
+        explicit VirtualStack(std::stringstream& out, std::unordered_map<std::string, FunctionOverload>& Functions) : out(out), _Scopes(100), _Functions(Functions) {}
 
         void Push(const Variable& Var, const std::string& what) {
-            this->Scopes[this->CurrentLevelScope].insert(this->Scopes[this->CurrentLevelScope].begin(), Var);
-            //out << "\tpush " << what << "\n";
+            this->_Scopes[this->CurrentLevelScope].insert(this->_Scopes[this->CurrentLevelScope].begin(), Var);
             out << "\tmov qword [rbp - " << this->CalculateLock(Var.Name) << "], " << what << "\n";
         }
 
         void Pop(const std::string& where = "") {
-            this->Scopes[this->CurrentLevelScope].pop_back();
-            //out << "\tpop " << where << "\n";
+            this->_Scopes[this->CurrentLevelScope].pop_back();
         }
 
         size_t CalculateLock(const std::string& VariableName) {
             size_t lock = this->CalculateMaxLock();
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
-                    if (this->Scopes[i][j].Name == VariableName) {
+                for (size_t j = 0; j < this->_Scopes[i].size(); ++j) {
+                    if (this->_Scopes[i][j].Name == VariableName) {
                         return lock;
                     }
-                    lock -= SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->_Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";
@@ -69,8 +70,8 @@ namespace Core::Compiler {
         size_t CalculateMaxLock() {
             size_t lock = 0;
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
-                    lock += SizeVariable(this->Scopes[i][j]);
+                for (size_t j = 0; j < this->_Scopes[i].size(); ++j) {
+                    lock += SizeVariable(this->_Scopes[i][j]);
                 }
             }
             return lock;
@@ -79,13 +80,12 @@ namespace Core::Compiler {
         void VariableMove(const std::string& VariableName, const std::string& where) {
             size_t lock = this->CalculateMaxLock();
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
-                    if (this->Scopes[i][j].Name == VariableName) {
-                        out << "\tmov rax, qword [rbp - " << lock << "]\n";
-                        out << "\tmov " << where << ", rax\n";
+                for (size_t j = 0; j < this->_Scopes[i].size(); ++j) {
+                    if (this->_Scopes[i][j].Name == VariableName) {
+                        out << "\tmov " << where << ", qword [rbp - " << lock << "]\n";
                         return;
                     }
-                    lock -= SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->_Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";
@@ -95,11 +95,11 @@ namespace Core::Compiler {
         Variable Find(const std::string& VariableName) {
             size_t lock = this->CalculateMaxLock();
             for (size_t i = this->CurrentLevelScope; static_cast<int>(i + 1) > 0; --i) {
-                for (size_t j = 0; j < this->Scopes[i].size(); ++j) {
-                    if (this->Scopes[i][j].Name == VariableName) {
-                        return this->Scopes[i][j];
+                for (size_t j = 0; j < this->_Scopes[i].size(); ++j) {
+                    if (this->_Scopes[i][j].Name == VariableName) {
+                        return this->_Scopes[i][j];
                     }
-                    lock -= SizeVariable(this->Scopes[i][j]);
+                    lock -= SizeVariable(this->_Scopes[i][j]);
                 }
             }
             std::cerr << "Undeclared identifier: " << VariableName << "\n";
@@ -107,14 +107,15 @@ namespace Core::Compiler {
         }
 
         void ClearScope() {
-            while (!this->Scopes[this->CurrentLevelScope].empty()) {
+            while (!this->_Scopes[this->CurrentLevelScope].empty()) {
                 this->Pop();
             }
 
             this->DecCurrentLevelScope();
         }
 
-        std::vector<std::vector<Variable>> Scopes;
+        std::vector<std::vector<Variable>> _Scopes;
+        std::unordered_map<std::string, FunctionOverload>& _Functions;
 
         size_t CurrentLevelScope = 0;
         void IncCurrentLevelScope() { ++this->CurrentLevelScope; }

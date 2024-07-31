@@ -4,174 +4,7 @@
 #include "Generation.h"
 
 namespace Core::Compiler {
-    Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output) {
-    }
-
-    auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VariableType> {
-        struct ExpressionVisitors {
-            Generator* generator;
-            std::optional<VariableType>& Type;
-            void operator()(const Node::Term* Term) const {
-                Type = generator->DefineTermType(Term);
-            }
-
-            void operator()(const Node::BinaryExpression* BinaryExpression) const {
-                Type = generator->DefineBinaryExpressionType(BinaryExpression);
-            }
-        };
-
-        std::optional<VariableType> Type;
-
-        ExpressionVisitors visitors{this, Type};
-
-        std::visit(visitors, Expression->var);
-
-        return Type;
-    }
-
-    auto Generator::DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType> {
-        struct BinaryExpressionVisitors {
-            Generator* generator;
-            std::optional<VariableType>& Type;
-            void operator()(const Node::BinaryExpressionAdd* BinaryExpressionAdd) const {
-                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionAdd->LeftHandSide);
-                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionAdd->RightHandSide);
-
-                if (!TypeLhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (!TypeRhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (TypeLhs.value() != TypeRhs.value()) {
-                    std::cerr << "Left expression and right expression have diffrent types! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                Type = TypeLhs.value();
-            }
-
-            void operator()(const Node::BinaryExpressionMultiplication* BinaryExpressionMultiplication) const {
-                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionMultiplication->LeftHandSide);
-                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionMultiplication->RightHandSide);
-
-                if (!TypeLhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (!TypeRhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (TypeLhs.value() != TypeRhs.value()) {
-                    std::cerr << "Left expression and right expression have diffrent types! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                Type = TypeLhs.value();
-            }
-
-            void operator()(const Node::BinaryExpressionDivision* BinaryExpressionDivision) const {
-                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionDivision->LeftHandSide);
-                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionDivision->RightHandSide);
-
-                if (!TypeLhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (!TypeRhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (TypeLhs.value() != TypeRhs.value()) {
-                    std::cerr << "Left expression and right expression have diffrent types! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                Type = TypeLhs.value();
-            }
-
-            void operator()(const Node::BinaryExpressionSubtraction* BinaryExpressionSubtraction) const {
-                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionSubtraction->LeftHandSide);
-                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionSubtraction->RightHandSide);
-
-                if (!TypeLhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (!TypeRhs.has_value()) {
-                    std::cerr << "Error in defining var\'s type! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                if (TypeLhs.value() != TypeRhs.value()) {
-                    std::cerr << "Left expression and right expression have diffrent types! \n";
-                    exit(EXIT_FAILURE);
-                }
-
-                Type = TypeLhs.value();
-            }
-
-            void operator()(const Node::BinaryExpressionEqualTo* BinaryExpressionEqualTo) const {
-                Type = VariableType::Bool;
-            }
-
-            void operator()(const Node::BinaryExpressionNotEqualTo* BinaryExpressionNotEqualTo) const {
-                Type = VariableType::Bool;
-            }
-
-        };
-
-        std::optional<VariableType> Type;
-
-        BinaryExpressionVisitors visitors{this, Type};
-
-        std::visit(visitors, BinaryExpression->var);
-
-        return Type;
-    }
-
-    auto Generator::DefineTermType(const Node::Term* Term) -> std::optional<VariableType> {
-        struct TermVisitors {
-            Generator* generator;
-            std::optional<VariableType>& Type;
-            void operator()(const Node::TermIntegerLiteral* TermIntegerLiteral) const {
-                Type = VariableType::Integer;
-            }
-
-            void operator()(const Node::TermStringLiteral* TermStringLiteral) const {
-                Type = VariableType::String;
-            }
-
-            void operator()(const Node::TermBoolLiteral* TermBoolLiteral) const {
-                Type = VariableType::Bool;
-            }
-
-            void operator()(const Node::TermIdentifier* TermIdentifier) const {
-                Type = generator->_VStack.Find(TermIdentifier->Identifier.value.value()).Type;
-            }
-
-            void operator()(const Node::TermParent* TermParent) const {
-                Type = generator->DefineExpressionType(TermParent->Expression);
-            }
-        };
-
-        std::optional<VariableType> Type;
-
-        TermVisitors visitors{this, Type};
-
-        std::visit(visitors, Term->var);
-
-        return Type;
+    Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output, this->_Functions) {
     }
 
     auto Generator::GenerateTerm(const Node::Term *Term, const std::string& where) -> void {
@@ -202,12 +35,17 @@ namespace Core::Compiler {
                         buffer.push_back(i);
                     }
                 }
-                if (!buffer.empty())
+                if (!buffer.empty()) {
                     AsmStringValue += "\"" + buffer + "\", ";
+                }
 
                 generator->_DataSegment << "\t" << label << " db " << AsmStringValue << 0 << "\n";
 
-                generator->_Output << "\tmov " << where << ", " << label << "\n";
+                generator->_Output << "\tmov rdi, " << label << "\n";
+                generator->_Output << "\tcall __strcpy\n";
+                if (where != "rax") {
+                    generator->_Output << "\tmov " << where << ", rax\n";
+                }
             }
 
             void operator()(const Node::TermIdentifier* TermIdentifier) const {
@@ -282,7 +120,10 @@ namespace Core::Compiler {
             Generator* generator;
             const std::string& where;
             void operator()(const Node::BinaryExpressionAdd* BinaryExpressionAdd) const {
-                assert(false);
+                Node::StatementFunctionCall StatementFunctionCall;
+                StatementFunctionCall.FunctionName = "operator+";
+                StatementFunctionCall.Arguments = {BinaryExpressionAdd->LeftHandSide, BinaryExpressionAdd->RightHandSide};
+                generator->GenerateStatementFunctionCall(&StatementFunctionCall, where);
             }
 
             void operator()(const Node::BinaryExpressionMultiplication* BinaryExpressionMultiplication) const {
@@ -355,7 +196,9 @@ namespace Core::Compiler {
                         generator->_Output << "\tsete cl\n";
                         generator->_Output << "\tmovzx rax, cl\n";
 
-                        generator->_Output << "\tmov " << where << ", rax\n";
+                        if (where != "rax") {
+                            generator->_Output << "\tmov " << where << ", rax\n";
+                        }
 
                         break;
                     }
@@ -471,51 +314,12 @@ namespace Core::Compiler {
                 generator->_VStack.Push({0, Type.value(), StatementLet->Identifier.value.value()}, "qword rax");
             }
 
-            void operator()(const Node::StatementFunctionCall* StatementFunction) const {
-                if (generator->_Functions.find(StatementFunction->FunctionName) == generator->_Functions.end()) {
-                    std::cerr << "Function don\'t be found!\n";
-                    exit(EXIT_FAILURE);
-                }
-
-                FunctionArgs FunctionArgs;
-                FunctionArgs.Parametr = {};
-                FunctionArgs.Args.reserve(StatementFunction->Arguments.size());
-
-                for (size_t i = 0; i < StatementFunction->Arguments.size(); ++i) {
-                    if (auto ArgType = generator->DefineExpressionType(StatementFunction->Arguments[i])) {
-                        FunctionArgs.Args.push_back(ArgType.value());
-                    }
-                    else {
-                        std::cerr << "Error in defining var\'s type! \n";
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                Function FnOverload;
-                bool isFailed = true;
-
-                for (const auto& FnOverloadIterator : generator->_Functions[StatementFunction->FunctionName].Overloads) {
-                    if (FnOverloadIterator.first == FunctionArgs) {
-                        FnOverload = FnOverloadIterator.second;
-                        isFailed = false;
-                        break;
-                    }
-                }
-
-                if (isFailed) {
-                    std::cerr << "Function with this args don\'t be found!\n";
-                    exit(EXIT_FAILURE);
-                }
-
-                for (size_t i = 0; i < generator->_PositionFnArgsInFnCall.size() && i < StatementFunction->Arguments.size(); ++i) {
-                    generator->GenetateExpression(StatementFunction->Arguments.at(i), generator->_PositionFnArgsInFnCall[i]);
-                }
-
-                generator->_Output << "\tcall " << FnOverload.AsmName << "\n";
+            void operator()(const Node::StatementFunctionCall* StatementFunctionCall) const {
+                generator->GenerateStatementFunctionCall(StatementFunctionCall, {});
             }
 
             void operator()(const Node::StatementScope* StatementScope) const {
-                generator->GenetateStatementScope(StatementScope->Statements);
+                generator->GenerateStatementScope(StatementScope->Statements);
             }
 
             void operator()(const Node::StatementIf* StatementIf) const {
@@ -600,7 +404,7 @@ namespace Core::Compiler {
         std::visit(visitors, Statement->var);
     }
 
-    auto Generator::GenetateStatementScope(const std::vector<Node::Statement *> &Statements) -> void {
+    auto Generator::GenerateStatementScope(const std::vector<Node::Statement *> &Statements) -> void {
         this->_VStack.IncCurrentLevelScope();
         for (const auto& Statement : Statements) {
             this->GenetateStatement(Statement);
@@ -609,9 +413,53 @@ namespace Core::Compiler {
         this->_VStack.ClearScope();
     }
 
-    auto Generator::GenetateProgramm() -> std::string {
-        this->_PositionFnArgsInFnCall = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+    auto Generator::GenerateStatementFunctionCall(const Node::StatementFunctionCall* StatementFunctionCall, const std::optional<std::string>& where) -> void {
+        if (this->_Functions.find(StatementFunctionCall->FunctionName) == this->_Functions.end()) {
+            std::cerr << "Function `" << StatementFunctionCall->FunctionName <<"` don\'t be found!\n";
+            exit(EXIT_FAILURE);
+        }
 
+        FunctionArgs FunctionArgs;
+        FunctionArgs.Parametr = {};
+        FunctionArgs.Args.reserve(StatementFunctionCall->Arguments.size());
+
+        for (size_t i = 0; i < StatementFunctionCall->Arguments.size(); ++i) {
+            if (auto ArgType = this->DefineExpressionType(StatementFunctionCall->Arguments[i])) {
+                FunctionArgs.Args.push_back(ArgType.value());
+            }
+            else {
+                std::cerr << "Error in defining var\'s type! \n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        Function FnOverload;
+        bool isFailed = true;
+
+        for (const auto& FnOverloadIterator : this->_Functions[StatementFunctionCall->FunctionName].Overloads) {
+            if (FnOverloadIterator.first == FunctionArgs) {
+                FnOverload = FnOverloadIterator.second;
+                isFailed = false;
+                break;
+            }
+        }
+
+        if (isFailed) {
+            std::cerr << "Function with this args don\'t be found!\n";
+            exit(EXIT_FAILURE);
+        }
+
+        for (size_t i = 0; i < this->_PositionFnArgsInFnCall.size() && i < StatementFunctionCall->Arguments.size(); ++i) {
+            this->GenetateExpression(StatementFunctionCall->Arguments.at(i), this->_PositionFnArgsInFnCall[i]);
+        }
+
+        this->_Output << "\tcall " << FnOverload.AsmName << "\n";
+        if (FnOverload.ReturnValue.has_value() && where.has_value() && where.value() != "rax") {
+            this->_Output << "\tmov " << where.value() << ", rax\n";
+        }
+    }
+
+    auto Generator::GenetateProgramm() -> std::string {
         this->_TextSegment << "section .text\n";
         this->_TextSegment << "\textern __malloc\n";
         this->_TextSegment << "\textern __exit\n";
@@ -619,8 +467,18 @@ namespace Core::Compiler {
         this->_TextSegment << "\textern __malloc_init\n";
         this->_TextSegment << "\textern __malloc_deinit\n";
 
-        this->_Functions["printf"].Overloads = {{{{VariableType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}};
-        this->_Functions["strlen"].Overloads = {{{{VariableType::String}, {}}, Function{{VariableType::Integer}, "__strlen"}}};
+        this->_Functions["printf"].Overloads = {
+            {{{VariableType::String}, {FunctionArgsParametr::UnlimitedArguments}}, Function{{}, "__printf"}}
+        };
+        this->_Functions["strlen"].Overloads = {
+            {{{VariableType::String}, {}}, Function{{VariableType::Integer}, "__strlen"}}
+        };
+        this->_Functions["operator+"].Overloads = {
+            {{{VariableType::String, VariableType::String}, {}}, Function{{VariableType::String}, "__strcat"}}
+        };
+        this->_Functions["copy"].Overloads = {
+            {{{VariableType::String}, {}}, Function{{VariableType::String}, "__strcpy"}}
+        };
 
         this->_DataSegment << "section .data\n";
 
@@ -632,20 +490,23 @@ namespace Core::Compiler {
         this->_Output << "\tcall __malloc_deinit\n";
         this->_Output << "\tmov rdi, 0\n";
         this->_Output << "\tcall __exit\n";
-        this->_Output << "\tret\n\n";
+        this->_Output << "\tret\n";
+
+        this->_Output << "\n";
+
         this->_Output << "main:\n";
 
         this->_Output << "\tpush rbp\n";
         this->_Output << "\tmov rbp, rsp\n";
         this->_Output << "\tsub rsp, 16\n\n";
-        this->GenetateStatementScope(this->_Programm.Statements);
+        this->GenerateStatementScope(this->_Programm.Statements);
         this->_Output << "\tpop rbp\n";
         this->_Output << "\tadd rsp, 16\n";
         this->_Output << "\tret\n\n";
 
         for (const auto& FuncOverload : this->_Functions) {
-            for (const auto& Func : FuncOverload.second.Overloads) {
-                this->_TextSegment << "\textern " << Func.second.AsmName << "\n";
+            for (const auto& Function : FuncOverload.second.Overloads) {
+                this->_TextSegment << "\textern " << Function.second.AsmName << "\n";
             }
         }
 

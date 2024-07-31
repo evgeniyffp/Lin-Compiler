@@ -6,7 +6,7 @@
 
 #include "Parser.h"
 
-#include <assert.h>
+#include <cassert>
 
 namespace Core::Compiler {
     auto Parser::_Peek(const int64_t& offset) const -> std::optional<Token> {

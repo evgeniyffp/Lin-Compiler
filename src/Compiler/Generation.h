@@ -21,14 +21,9 @@ namespace Core::Compiler {
         VirtualStack _VStack;
 
         std::unordered_map<std::string, FunctionOverload> _Functions;
-        std::vector<std::string> _PositionFnArgsInFnCall;
 
     public:
         explicit Generator(Node::Programm programm);
-
-        auto DefineExpressionType(const Node::Expression* Expression) -> std::optional<VariableType>;
-        auto DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType>;
-        auto DefineTermType(const Node::Term* Term) -> std::optional<VariableType>;
 
         auto GenerateTerm(const Node::Term* Term, const std::string& where) -> void;
 
@@ -40,7 +35,8 @@ namespace Core::Compiler {
 
         auto GenetateExpression(const Node::Expression* Expression, const std::string& where) -> void;
 
-        auto GenetateStatementScope(const std::vector<Node::Statement *> &Statements) -> void;
+        auto GenerateStatementScope(const std::vector<Node::Statement*>& Statements) -> void;
+        auto GenerateStatementFunctionCall(const Node::StatementFunctionCall* StatementFunctionCall, const std::optional<std::string>& where) -> void;
 
         auto GenetateStatement(const Node::Statement* Statement) -> void;
 

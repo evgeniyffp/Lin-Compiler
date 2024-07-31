@@ -58,12 +58,12 @@ namespace Core::Compiler {
                     buffer.clear();
                     continue;
                 }
-                else if (buffer == "int") {
+                else if (buffer == "i64") {
                     tokens.push_back({TokenType::IntegerType});
                     buffer.clear();
                     continue;
                 }
-                else if (buffer == "string") {
+                else if (buffer == "str") {
                     tokens.push_back({TokenType::StringType});
                     buffer.clear();
                     continue;

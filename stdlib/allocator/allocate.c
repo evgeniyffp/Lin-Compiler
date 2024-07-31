@@ -1,25 +1,6 @@
-#ifndef bool
-    #define bool int
-#endif
-#ifndef true
-    #define true 1
-#endif
-#ifndef false
-    #define false 0
-#endif
-#ifndef NULL
-    #define NULL 0
-#endif
-
-typedef unsigned long size_t;
-typedef char byte_t;
-
-extern void __printf(char*, ...);
-extern void __exit(int);
-extern void* __brk(void*);
+#include "../core.h"
 
 #define _DEFAULT_STACKSIZE 1048576 // = 1mb
-#define assert(x, y) { if (x) { __printf(y); __exit(1); } }
 
 struct MetaData {
     struct MetaData* _next;
@@ -38,11 +19,11 @@ static void* endheap;
 #define _MainData ((struct MainData*)endheap)
 
 void __malloc_init() {
-    assert(sizeof(byte_t) != 1, "init_alloc(): size of byte_t must be 1 byte\n");
+    assert(sizeof(byte_t) != 1, "__malloc_init(): size of byte_t must be 1 byte\n");
 
     endheap = __brk(NULL);
 
-    assert(endheap == NULL, "init_alloc(): end of heap == null\n");
+    assert(endheap == NULL, "__malloc_init(): end of heap == null\n");
 
     __brk((byte_t*)endheap + _DEFAULT_STACKSIZE);
 
@@ -85,7 +66,10 @@ void* __malloc(size_t size) {
 }
 
 void __free(void* alocated_ptr) {
-    assert(alocated_ptr == NULL, "free(): poiner is null\n");
+    if (alocated_ptr == NULL) {
+        return;
+    }
+
     byte_t* ptr = (byte_t*)alocated_ptr;
     ptr -= sizeof(struct MetaData);
 
