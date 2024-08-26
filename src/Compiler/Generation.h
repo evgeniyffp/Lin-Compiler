@@ -25,6 +25,10 @@ namespace Core::Compiler {
     public:
         explicit Generator(Node::Programm programm);
 
+        auto DefineExpressionType(const Node::Expression* Expression) -> std::optional<VariableType>;
+        auto DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType>;
+        auto DefineTermType(const Node::Term* Term) -> std::optional<VariableType>;
+
         auto GenerateTerm(const Node::Term* Term, const std::string& where) -> void;
 
         auto GenerateIntegerBinaryExpression(const Node::BinaryExpression* BinaryExpression, const std::string& where) -> void;

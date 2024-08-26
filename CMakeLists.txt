@@ -30,6 +30,6 @@ add_executable(Compiler
         src/Compiler/VectorHasher.h
         src/Compiler/Functions.h
         src/Compiler/VariableType.h
-        src/Compiler/DefineTypes.h
+        src/Compiler/Statement.h
 )
 target_link_libraries(Compiler stdc++)

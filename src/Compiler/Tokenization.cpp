@@ -25,7 +25,7 @@ namespace Core::Compiler {
         while (this->_peek().has_value()) {
             if (std::isalpha(this->_peek().value())) {
                 buffer.push_back(this->_consume());
-                while (std::isalnum(this->_peek().value()) && this->_peek().has_value()) {
+                while ( this->_peek().has_value() && (std::isalnum(this->_peek().value()) || this->_peek().value() == ':')) {
                     buffer.push_back(this->_consume());
                 }
                 if (buffer == "let") {

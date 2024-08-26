@@ -1,5 +1,5 @@
 section .data
-	msg140407214702704 db "Hello, World!", 10, 0
+	msg140484469194864 db "sas", 0
 
 section .text
 	extern __malloc
@@ -7,6 +7,7 @@ section .text
 	extern __free
 	extern __malloc_init
 	extern __malloc_deinit
+	extern __strnew
 	extern __strcat
 	extern __strlen
 	extern __strcpy
@@ -28,12 +29,9 @@ main:
 	mov rbp, rsp
 	sub rsp, 16
 
-	mov rdi, msg140407214702704
+	mov rdi, msg140484469194864
 	call __strcpy
 	mov qword [rbp - 8], qword rax
-
-	mov rdi, qword [rbp - 8]
-	call __printf
 
 	pop rbp
 	add rsp, 16

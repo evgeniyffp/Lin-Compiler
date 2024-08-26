@@ -7,6 +7,173 @@ namespace Core::Compiler {
     Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output, this->_Functions) {
     }
 
+    auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VariableType> {
+        struct ExpressionVisitors {
+            Generator* generator;
+            std::optional<VariableType>& Type;
+            void operator()(const Node::Term* Term) const {
+                Type = generator->DefineTermType(Term);
+            }
+
+            void operator()(const Node::BinaryExpression* BinaryExpression) const {
+                Type = generator->DefineBinaryExpressionType(BinaryExpression);
+            }
+        };
+
+        std::optional<VariableType> Type;
+
+        ExpressionVisitors visitors{this, Type};
+
+        std::visit(visitors, Expression->var);
+
+        return Type;
+    }
+
+    auto Generator::DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType> {
+        struct BinaryExpressionVisitors {
+            Generator* generator;
+            std::optional<VariableType>& Type;
+            void operator()(const Node::BinaryExpressionAdd* BinaryExpressionAdd) const {
+                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionAdd->LeftHandSide);
+                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionAdd->RightHandSide);
+
+                if (!TypeLhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!TypeRhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (TypeLhs.value() != TypeRhs.value()) {
+                    std::cerr << "Left expression and right expression have diffrent types! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                Type = TypeLhs.value();
+            }
+
+            void operator()(const Node::BinaryExpressionMultiplication* BinaryExpressionMultiplication) const {
+                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionMultiplication->LeftHandSide);
+                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionMultiplication->RightHandSide);
+
+                if (!TypeLhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!TypeRhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (TypeLhs.value() != TypeRhs.value()) {
+                    std::cerr << "Left expression and right expression have diffrent types! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                Type = TypeLhs.value();
+            }
+
+            void operator()(const Node::BinaryExpressionDivision* BinaryExpressionDivision) const {
+                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionDivision->LeftHandSide);
+                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionDivision->RightHandSide);
+
+                if (!TypeLhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!TypeRhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (TypeLhs.value() != TypeRhs.value()) {
+                    std::cerr << "Left expression and right expression have diffrent types! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                Type = TypeLhs.value();
+            }
+
+            void operator()(const Node::BinaryExpressionSubtraction* BinaryExpressionSubtraction) const {
+                auto TypeLhs = generator->DefineExpressionType(BinaryExpressionSubtraction->LeftHandSide);
+                auto TypeRhs = generator->DefineExpressionType(BinaryExpressionSubtraction->RightHandSide);
+
+                if (!TypeLhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!TypeRhs.has_value()) {
+                    std::cerr << "Error in defining var\'s type! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if (TypeLhs.value() != TypeRhs.value()) {
+                    std::cerr << "Left expression and right expression have diffrent types! \n";
+                    exit(EXIT_FAILURE);
+                }
+
+                Type = TypeLhs.value();
+            }
+
+            void operator()(const Node::BinaryExpressionEqualTo* BinaryExpressionEqualTo) const {
+                Type = VariableType::Bool;
+            }
+
+            void operator()(const Node::BinaryExpressionNotEqualTo* BinaryExpressionNotEqualTo) const {
+                Type = VariableType::Bool;
+            }
+
+        };
+
+        std::optional<VariableType> Type;
+
+        BinaryExpressionVisitors visitors{this, Type};
+
+        std::visit(visitors, BinaryExpression->var);
+
+        return Type;
+    }
+
+    auto Generator::DefineTermType(const Node::Term* Term) -> std::optional<VariableType> {
+        struct TermVisitors {
+            Generator* generator;
+            std::optional<VariableType>& Type;
+            void operator()(const Node::TermIntegerLiteral* TermIntegerLiteral) const {
+                Type = VariableType::Integer;
+            }
+
+            void operator()(const Node::TermStringLiteral* TermStringLiteral) const {
+                Type = VariableType::String;
+            }
+
+            void operator()(const Node::TermBoolLiteral* TermBoolLiteral) const {
+                Type = VariableType::Bool;
+            }
+
+            void operator()(const Node::TermIdentifier* TermIdentifier) const {
+                Type = generator->_VStack.Find(TermIdentifier->Identifier.value.value()).Type;
+            }
+
+            void operator()(const Node::TermParent* TermParent) const {
+                Type = generator->DefineExpressionType(TermParent->Expression);
+            }
+        };
+
+        std::optional<VariableType> Type;
+
+        TermVisitors visitors{this, Type};
+
+        std::visit(visitors, Term->var);
+
+        return Type;
+    }
+
     auto Generator::GenerateTerm(const Node::Term *Term, const std::string& where) -> void {
         struct TermVisitors {
             Generator* generator;
@@ -122,7 +289,7 @@ namespace Core::Compiler {
             void operator()(const Node::BinaryExpressionAdd* BinaryExpressionAdd) const {
                 Node::StatementFunctionCall StatementFunctionCall;
                 StatementFunctionCall.FunctionName = "operator+";
-                StatementFunctionCall.Arguments = {BinaryExpressionAdd->LeftHandSide, BinaryExpressionAdd->RightHandSide};
+                StatementFunctionCall.Arguments = { BinaryExpressionAdd->LeftHandSide, BinaryExpressionAdd->RightHandSide };
                 generator->GenerateStatementFunctionCall(&StatementFunctionCall, where);
             }
 
@@ -423,8 +590,8 @@ namespace Core::Compiler {
         FunctionArgs.Parametr = {};
         FunctionArgs.Args.reserve(StatementFunctionCall->Arguments.size());
 
-        for (size_t i = 0; i < StatementFunctionCall->Arguments.size(); ++i) {
-            if (auto ArgType = this->DefineExpressionType(StatementFunctionCall->Arguments[i])) {
+        for (auto Argument : StatementFunctionCall->Arguments) {
+            if (auto ArgType = this->DefineExpressionType(Argument)) {
                 FunctionArgs.Args.push_back(ArgType.value());
             }
             else {
@@ -449,11 +616,35 @@ namespace Core::Compiler {
             exit(EXIT_FAILURE);
         }
 
-        for (size_t i = 0; i < this->_PositionFnArgsInFnCall.size() && i < StatementFunctionCall->Arguments.size(); ++i) {
-            this->GenetateExpression(StatementFunctionCall->Arguments.at(i), this->_PositionFnArgsInFnCall[i]);
+        if (StatementFunctionCall->Arguments.size() > PositionFnArgsInFnCall.size()) {
+            std::cerr << "Function argument must be <= than " << PositionFnArgsInFnCall.size() << "!\n";
+            exit(EXIT_FAILURE);
+        }
+
+        for (size_t i = 0; i < StatementFunctionCall->Arguments.size(); ++i) {
+            this->GenetateExpression(StatementFunctionCall->Arguments.at(i), "rax");
+            this->_VStack.Push(
+                    {
+                            {},
+                            this->DefineExpressionType(StatementFunctionCall->Arguments.at(i)).value(),
+                            std::string("let ") + std::to_string(reinterpret_cast<size_t>(StatementFunctionCall)) + "_" + std::to_string(i)
+                    }, "rax"
+            );
+        }
+
+        for (size_t i = 0; i < StatementFunctionCall->Arguments.size(); ++i) {
+            this->_VStack.VariableMove(
+                    std::string("let ") + std::to_string(reinterpret_cast<size_t>(StatementFunctionCall)) + "_" + std::to_string(i),
+                    PositionFnArgsInFnCall[i]
+            );
+        }
+
+        for (size_t i = 0; i < StatementFunctionCall->Arguments.size(); ++i) {
+            this->_VStack.Pop();
         }
 
         this->_Output << "\tcall " << FnOverload.AsmName << "\n";
+
         if (FnOverload.ReturnValue.has_value() && where.has_value() && where.value() != "rax") {
             this->_Output << "\tmov " << where.value() << ", rax\n";
         }
@@ -478,6 +669,9 @@ namespace Core::Compiler {
         };
         this->_Functions["copy"].Overloads = {
             {{{VariableType::String}, {}}, Function{{VariableType::String}, "__strcpy"}}
+        };
+        this->_Functions["str::new"].Overloads = {
+            {{{VariableType::Integer}, {}}, Function{{VariableType::String}, "__strnew"}}
         };
 
         this->_DataSegment << "section .data\n";
