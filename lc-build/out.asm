@@ -1,5 +1,6 @@
 section .data
-	msg140484469194864 db "sas", 0
+	msg140176509747312 db "asasas", 10, 0
+	msg140176509747600 db "tstes", 10, 0
 
 section .text
 	extern __malloc
@@ -10,6 +11,7 @@ section .text
 	extern __strnew
 	extern __strcat
 	extern __strlen
+	extern __strdelete
 	extern __strcpy
 	extern __printf
 
@@ -29,9 +31,31 @@ main:
 	mov rbp, rsp
 	sub rsp, 16
 
-	mov rdi, msg140484469194864
+	mov rdi, msg140176509747312
 	call __strcpy
 	mov qword [rbp - 8], qword rax
+
+	mov rax, qword [rbp - 8]
+	mov qword [rbp - 16], rax
+	mov rdi, qword [rbp - 16]
+	call __printf
+
+	mov rdi, msg140176509747600
+	call __strcpy
+	mov qword [rbp - 8], rax
+
+	mov rax, qword [rbp - 8]
+	mov qword [rbp - 16], rax
+	mov rdi, qword [rbp - 16]
+	call __printf
+
+	mov rax, qword [rbp - 8]
+	mov qword [rbp - 16], rax
+	mov rdi, qword [rbp - 16]
+	call __printf
+
+	mov rdi, qword [rbp - 8]
+	call __strdelete
 
 	pop rbp
 	add rsp, 16

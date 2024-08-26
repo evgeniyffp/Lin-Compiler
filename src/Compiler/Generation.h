@@ -23,7 +23,7 @@ namespace Core::Compiler {
         std::unordered_map<std::string, FunctionOverload> _Functions;
 
     public:
-        explicit Generator(Node::Programm programm);
+        explicit Generator(const Node::Programm& programm);
 
         auto DefineExpressionType(const Node::Expression* Expression) -> std::optional<VariableType>;
         auto DefineBinaryExpressionType(const Node::BinaryExpression* BinaryExpression) -> std::optional<VariableType>;

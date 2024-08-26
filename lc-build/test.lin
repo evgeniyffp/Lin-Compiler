@@ -1,2 +1,9 @@
+let y = "asasas\n";
 
-let x = "sas";
+printf(y);
+
+
+y = "tstes\n";
+
+printf(y);
+printf(y);

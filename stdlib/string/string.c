@@ -5,6 +5,12 @@ char* __strnew(size_t size) {
     return __malloc(size * sizeof(char));
 }
 
+void __strdelete(char* ptr) {
+    __free((void*) ptr);
+    *ptr = '\0';
+    ptr = NULL;
+}
+
 char* __strcpy(const char* src) {
     char* dest = NULL;
 

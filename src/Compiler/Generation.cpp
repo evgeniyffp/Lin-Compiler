@@ -4,7 +4,9 @@
 #include "Generation.h"
 
 namespace Core::Compiler {
-    Generator::Generator(Node::Programm programm) : _Programm(programm), _VStack(this->_Output, this->_Functions) {
+    Generator::Generator(const Node::Programm& programm)
+            : _Programm(programm)
+            , _VStack(this->_Output, *this, &Generator::GenerateStatementFunctionCall, this->_Functions) {
     }
 
     auto Generator::DefineExpressionType(const Node::Expression *Expression) -> std::optional<VariableType> {
@@ -627,7 +629,8 @@ namespace Core::Compiler {
                     {
                             {},
                             this->DefineExpressionType(StatementFunctionCall->Arguments.at(i)).value(),
-                            std::string("let ") + std::to_string(reinterpret_cast<size_t>(StatementFunctionCall)) + "_" + std::to_string(i)
+                            std::string("let ") + std::to_string(reinterpret_cast<size_t>(StatementFunctionCall)) + "_" + std::to_string(i),
+                            false
                     }, "rax"
             );
         }
@@ -672,6 +675,9 @@ namespace Core::Compiler {
         };
         this->_Functions["str::new"].Overloads = {
             {{{VariableType::Integer}, {}}, Function{{VariableType::String}, "__strnew"}}
+        };
+        this->_Functions["str::__delete"].Overloads = {
+            {{{VariableType::String}, {}}, Function{{}, "__strdelete"}}
         };
 
         this->_DataSegment << "section .data\n";

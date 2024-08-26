@@ -14,6 +14,7 @@ namespace Core::Compiler {
         size_t StackLock;
         VariableType Type;
         std::string Name;
+        bool isConstruct = true;
     };
 
     inline size_t SizeVariable(const VariableType VarType) {
@@ -31,7 +32,32 @@ namespace Core::Compiler {
         return SizeVariable(Var.Type);
     }
 
-    struct VirtualStack {
+    inline std::string VariableTypeToString(const Variable& Var) {
+        switch (Var.Type) {
+            case VariableType::Integer:
+                return "i64";
+            case VariableType::String:
+                return "str";
+            case VariableType::Bool:
+                return "bool";
+            default:
+                assert(false);
+        }
+    }
+
+    struct Generator;
+
+    class VirtualStack {
+    private:
+        std::stringstream& out;
+        std::vector<std::vector<Variable>> _Scopes;
+        size_t CurrentLevelScope = 0;
+
+        Generator& generator;
+        void (Generator::* Callback)(const Node::StatementFunctionCall*, const std::optional<std::string>&);
+        std::unordered_map<std::string, FunctionOverload>& Functions;
+
+    public:
         VirtualStack(const VirtualStack&) = delete;
         VirtualStack(VirtualStack&&) = delete;
 
@@ -40,9 +66,17 @@ namespace Core::Compiler {
 
         VirtualStack() = delete;
 
-        std::stringstream& out;
-
-        explicit VirtualStack(std::stringstream& out, std::unordered_map<std::string, FunctionOverload>& Functions) : out(out), _Scopes(100), _Functions(Functions) {}
+        explicit VirtualStack(
+                    std::stringstream& out,
+                    Generator& generator,
+                    void (Generator::* Callback)(const Node::StatementFunctionCall*, const std::optional<std::string>&),
+                    std::unordered_map<std::string, FunctionOverload>& Functions
+        )
+                : out(out)
+                , _Scopes(100)
+                , generator(generator)
+                , Callback(Callback)
+                , Functions(Functions) {}
 
         void Push(const Variable& Var, const std::string& what) {
             this->_Scopes[this->CurrentLevelScope].insert(this->_Scopes[this->CurrentLevelScope].end(), Var);
@@ -50,6 +84,13 @@ namespace Core::Compiler {
         }
 
         void Pop(const std::string& where = "") {
+            std::string FunctionName = VariableTypeToString(this->_Scopes[this->CurrentLevelScope].back()) + "::__delete";
+            if (this->Functions.contains(FunctionName) && this->_Scopes[this->CurrentLevelScope].back().isConstruct) {
+                out << "\tmov " << PositionFnArgsInFnCall.at(0) << ", qword [rbp - " << CalculateLock(this->_Scopes[this->CurrentLevelScope].back().Name) << "]\n";
+                out << "\tcall " << this->Functions[FunctionName].Overloads[{{this->_Scopes[this->CurrentLevelScope].back().Type}, {}}].AsmName << "\n";
+                out << "\n";
+            }
+
             this->_Scopes[this->CurrentLevelScope].pop_back();
         }
 
@@ -115,10 +156,6 @@ namespace Core::Compiler {
             this->DecCurrentLevelScope();
         }
 
-        std::vector<std::vector<Variable>> _Scopes;
-        std::unordered_map<std::string, FunctionOverload>& _Functions;
-
-        size_t CurrentLevelScope = 0;
         void IncCurrentLevelScope() { ++this->CurrentLevelScope; }
         void DecCurrentLevelScope() { --this->CurrentLevelScope; }
     };

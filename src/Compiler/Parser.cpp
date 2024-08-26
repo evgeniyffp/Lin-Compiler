@@ -1,12 +1,7 @@
-//
-// Created by Евгений on 20.06.2024.
-//
-
 #include <iostream>
+#include <cassert>
 
 #include "Parser.h"
-
-#include <cassert>
 
 namespace Core::Compiler {
     auto Parser::_Peek(const int64_t& offset) const -> std::optional<Token> {
